@@ -2,7 +2,7 @@
   <v-app id="inspire">
     <v-navigation-drawer v-model="drawer" app clipped>
       <v-list dense>
-        <v-list-item link>
+        <v-list-item link to="/">
           <v-list-item-action>
             <v-icon>mdi-home</v-icon>
           </v-list-item-action>
@@ -10,7 +10,7 @@
             <v-list-item-title>Home</v-list-item-title>
           </v-list-item-content>
         </v-list-item>
-        <v-list-item link>
+        <v-list-item link to="/schedule">
           <v-list-item-action>
             <v-icon>mdi-calendar-clock</v-icon>
           </v-list-item-action>
@@ -18,7 +18,7 @@
             <v-list-item-title>Schedule</v-list-item-title>
           </v-list-item-content>
         </v-list-item>
-        <v-list-item link>
+        <v-list-item link to="/events">
           <v-list-item-action>
             <v-icon>mdi-timeline-alert</v-icon>
           </v-list-item-action>
@@ -26,7 +26,7 @@
             <v-list-item-title>Events</v-list-item-title>
           </v-list-item-content>
         </v-list-item>
-        <v-list-item link>
+        <v-list-item link to="/settings">
           <v-list-item-action>
             <v-icon>mdi-settings</v-icon>
           </v-list-item-action>
@@ -43,15 +43,11 @@
     </v-app-bar>
 
     <v-content>
-      <v-container class="fill-height" fluid>
-        <v-row align="center" justify="center">
-          <v-col class="shrink">12345</v-col>
-        </v-row>
-      </v-container>
+      <router-view></router-view>
     </v-content>
 
     <v-footer app>
-      <span>{{connectionStateString}}</span>
+      <span :class="connectionStateCss">{{connectionStateString}}</span>
     </v-footer>
   </v-app>
 </template>
@@ -62,7 +58,12 @@ export default {
   data: () => ({
     drawer: null,
   }),
-  computed: mapState(['connectionStateString']),
+  computed: {
+    ...mapState(['connectionStateString', 'connected']),
+    connectionStateCss: function() {
+      return this.connected ? 'success--text' : 'error--text'
+    },
+  },
   created() {
     this.$vuetify.theme.dark = true
   },
