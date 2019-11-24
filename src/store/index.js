@@ -2,6 +2,8 @@ import Vue from 'vue'
 import Vuex from 'vuex'
 import io from 'socket.io-client'
 
+const RPC_TIMEOUT = 3000
+
 Vue.use(Vuex)
 
 const store = new Vuex.Store({
@@ -52,8 +54,31 @@ const store = new Vuex.Store({
       socket.emit('rpc/database/getEvents', dateUtc.getUTCFullYear(), dateUtc.getUTCMonth() + 1, dateUtc.getUTCDate())
     },
     setScheduleEntry(context, scheduleEntry) {
+      return context.dispatch('rpc', {
+        event: 'rpc/device/setScheduleEntry',
+        args: [
+          // we need to pass this arguments in particular order (see petwant-device setScheduleEntry method)
+          scheduleEntry.hours,
+          scheduleEntry.minutes,
+          scheduleEntry.portions,
+          scheduleEntry.entryIndex,
+          scheduleEntry.soundIndex,
+          scheduleEntry.enabled,
+        ],
+      }) // returns Promise
+    },
+    rpc(context, rpcConfig) {
       return new Promise((resolve, reject) => {
-        socket.once('rpc/device/setScheduleEntry/response', response => {
+        const timeout = setTimeout(() => {
+          // unsubscribing of whatever/rpc/call/response
+          socket.off(rpcConfig.event + '/response')
+          reject('Remote procedure call timeout')
+        }, RPC_TIMEOUT)
+
+        // subscribing to whatever/rpc/call/response
+        socket.once(rpcConfig.event + '/response', response => {
+          clearTimeout(timeout) // clearing timeout first
+
           if (response && response.error) {
             return reject(response.error)
           }
@@ -64,15 +89,8 @@ const store = new Vuex.Store({
         })
 
         context.commit('rpcRequestInProgress', true)
-        socket.emit(
-          'rpc/device/setScheduleEntry',
-          scheduleEntry.hours,
-          scheduleEntry.minutes,
-          scheduleEntry.portions,
-          scheduleEntry.entryIndex,
-          scheduleEntry.soundIndex,
-          scheduleEntry.enabled
-        )
+        // sending rpc request
+        socket.emit(rpcConfig.event, ...rpcConfig.args) // passing args in arguments
       })
     },
   },
