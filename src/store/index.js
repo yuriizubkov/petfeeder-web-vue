@@ -110,6 +110,7 @@ const store = new Vuex.Store({
       })
     },
     showSnackbar(context, message) {
+      // overriding defaults
       const config = Object.assign(
         {
           snackbar: true,

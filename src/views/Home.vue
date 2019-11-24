@@ -6,16 +6,12 @@
           <!--https://pixabay.com/vectors/dog-cat-animal-pet-cute-1517090/-->
           <v-img contain src="../assets/camera_back.png" height="480" aspect-ratio="1.33"></v-img>
           <v-card-actions>
-            <v-btn
-              :disabled="rpcRequestInProgress || !connected"
-              :loading="rpcRequestInProgress"
-              @click="startVideo"
-            >Start Video</v-btn>
-            <v-btn
-              :disabled="rpcRequestInProgress || !connected"
-              :loading="rpcRequestInProgress"
-              @click="feed"
-            >Feed 1 portion</v-btn>
+            <v-btn :disabled="rpcRequestInProgress || !connected" :loading="rpcRequestInProgress" @click="startVideo"
+              >Start Video</v-btn
+            >
+            <v-btn :disabled="rpcRequestInProgress || !connected" :loading="rpcRequestInProgress" @click="feed"
+              >Feed 1 portion</v-btn
+            >
           </v-card-actions>
         </v-card>
       </v-col>
