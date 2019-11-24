@@ -1,16 +1,10 @@
 <template>
   <v-card class="mb-4">
-    <v-card-title>Schedule entry #{{scheduleEntry.entryIndex}}</v-card-title>
-    <v-card-subtitle>{{formatTime(scheduleEntry.hours)}}:{{formatTime(scheduleEntry.minutes)}} UTC</v-card-subtitle>
+    <v-card-title>Schedule entry #{{schedule.entryIndex}}</v-card-title>
+    <v-card-subtitle>{{formatTime(schedule.hours)}}:{{formatTime(schedule.minutes)}} UTC</v-card-subtitle>
     <v-card-text>
       Portions:
-      <v-text-field
-        v-model="scheduleEntry.portions"
-        readonly
-        hide-details
-        single-line
-        type="number"
-      >
+      <v-text-field v-model="schedule.portions" readonly hide-details single-line type="number">
         <v-icon @click="addPortion()" slot="append">mdi-plus</v-icon>
         <v-icon @click="removePortion()" slot="prepend">mdi-minus</v-icon>
       </v-text-field>
@@ -18,8 +12,10 @@
     <v-card-actions>
       <v-switch
         class="pl-2"
-        v-model="scheduleEntry.enabled"
-        :label="scheduleEntry.enabled ? 'Enabled' : 'Disabled'"
+        v-model="schedule.enabled"
+        :label="schedule.enabled ? 'Enabled' : 'Disabled'"
+        :error="enabledErrorMessage !== ''"
+        :error-messages="enabledErrorMessage"
       ></v-switch>
     </v-card-actions>
   </v-card>
@@ -30,18 +26,18 @@ export default {
   props: {
     scheduleEntry: Object,
   },
+  data: function() {
+    return {
+      enabledErrorMessage: '',
+      updatingFromWatcher: false, // VERY ugly solution https://github.com/vuejs/vue/issues/1829
+      schedule: this.scheduleEntry,
+    }
+  },
   watch: {
-    'scheduleEntry.portions': function(newVal, oldVal) {
-      this.$store.dispatch('setScheduleEntry', this.scheduleEntry).catch(err => {
-        this.scheduleEntry.portions = oldVal
-        console.log(err)
-      })
-    },
-    'scheduleEntry.enabled': function(newVal, oldVal) {
-      this.$store.dispatch('setScheduleEntry', this.scheduleEntry).catch(err => {
-        this.scheduleEntry.enabled = oldVal
-        console.log(err)
-      })
+    'schedule.enabled': {
+      handler: function(newVal, oldVal) {
+        this.updateChanges('enabled', newVal, oldVal)
+      },
     },
   },
   methods: {
@@ -49,10 +45,28 @@ export default {
       return ('0' + number).slice(-2)
     },
     addPortion() {
-      this.scheduleEntry.portions < 10 && this.scheduleEntry.portions++
+      this.schedule.portions < 10 && this.schedule.portions++
     },
     removePortion() {
-      this.scheduleEntry.portions > 1 && this.scheduleEntry.portions--
+      this.schedule.portions > 1 && this.schedule.portions--
+    },
+    updateChanges(changedField, newVal, oldVal) {
+      if (this.updatingFromWatcher) {
+        this.updatingFromWatcher = false
+        return
+      }
+
+      this.$store
+        .dispatch('setScheduleEntry', this.schedule)
+        .then(() => {
+          this[`${changedField}ErrorMessage`] = ''
+        })
+        .catch(err => {
+          this.updatingFromWatcher = true
+          this.schedule[changedField] = oldVal // rolling back changes
+          this[`${changedField}ErrorMessage`] = err
+          console.error('setScheduleEntry error:', err)
+        })
     },
   },
 }
