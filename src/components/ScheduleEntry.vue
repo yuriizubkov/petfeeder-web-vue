@@ -1,30 +1,50 @@
 <template>
   <v-card class="mb-4">
-    <v-card-title>Schedule entry #{{schedule.entryIndex}}</v-card-title>
-    <v-card-subtitle>{{formatHours(schedule.hours)}}:{{formatNumber(schedule.minutes)}}</v-card-subtitle>
-    <v-card-text>
-      Portions:
-      <v-text-field
-        :error="portionsErrorMessage !== ''"
-        :error-messages="portionsErrorMessage"
-        v-model="schedule.portions"
-        readonly
-        single-line
-        type="number"
-      >
-        <v-icon @click="addPortion()" slot="append">mdi-plus</v-icon>
-        <v-icon @click="removePortion()" slot="prepend">mdi-minus</v-icon>
-      </v-text-field>
+    <v-card-title>{{schedule.hours | formatHours}}:{{schedule.minutes | formatNumber}}</v-card-title>
+    <v-card-subtitle>Local time (GMT {{-timezoneOffset>=0 ? '+' : '-'}}{{-timezoneOffset}})</v-card-subtitle>
+    <v-card-text class="pb-0 pt-0">
+      <v-container class="pa-0">
+        <v-row>
+          <v-col>
+            <v-select
+              label="Portions (1 portion = ~10 gramm)"
+              :error="portionsErrorMessage !== ''"
+              :error-messages="portionsErrorMessage"
+              :items="portions"
+              v-model="schedule.portions"
+            />
+          </v-col>
+          <v-col>
+            <v-switch
+              v-model="schedule.enabled"
+              :label="schedule.enabled ? 'Enabled' : 'Disabled'"
+              :error="enabledErrorMessage !== ''"
+              :error-messages="enabledErrorMessage"
+            ></v-switch>
+          </v-col>
+        </v-row>
+        <v-row>
+          <v-col>
+            <v-select
+              label="Hour (UTC)"
+              :error="hoursErrorMessage !== ''"
+              :error-messages="hoursErrorMessage"
+              :items="hours"
+              v-model="schedule.hours"
+            />
+          </v-col>
+          <v-col>
+            <v-select
+              label="Minutes"
+              :error="minutesErrorMessage !== ''"
+              :error-messages="minutesErrorMessage"
+              :items="minutes"
+              v-model="schedule.minutes"
+            />
+          </v-col>
+        </v-row>
+      </v-container>
     </v-card-text>
-    <v-card-actions>
-      <v-switch
-        class="pl-2"
-        v-model="schedule.enabled"
-        :label="schedule.enabled ? 'Enabled' : 'Disabled'"
-        :error="enabledErrorMessage !== ''"
-        :error-messages="enabledErrorMessage"
-      ></v-switch>
-    </v-card-actions>
   </v-card>
 </template>
 
@@ -35,6 +55,18 @@ export default {
   },
   data: function() {
     return {
+      timezoneOffset: new Date().getTimezoneOffset() / 60, // getTimezoneOffset() in minutes, for example -60 / 60 = -1 in hours
+      hours: Array.from(Array(24).keys()).map(val => {
+        return { text: ('0' + val).slice(-2), value: val } // 0 - 23
+      }),
+      minutes: Array.from(Array(60).keys()).map(val => {
+        return { text: ('0' + val).slice(-2), value: val } // 0 - 59
+      }),
+      portions: Array.from(Array(10).keys()).map(val => {
+        return { text: val + 1, value: val + 1 } // 1 - 10
+      }),
+      minutesErrorMessage: '',
+      hoursErrorMessage: '',
       portionsErrorMessage: '',
       enabledErrorMessage: '',
       updatingFromWatcher: false, // VERY ugly solution https://github.com/vuejs/vue/issues/1829
@@ -52,20 +84,31 @@ export default {
         this.updateChanges('enabled', newVal, oldVal)
       },
     },
+    'schedule.minutes': {
+      handler: function(newVal, oldVal) {
+        this.updateChanges('minutes', newVal, oldVal)
+      },
+    },
+    'schedule.hours': {
+      handler: function(newVal, oldVal) {
+        this.updateChanges('hours', newVal, oldVal)
+      },
+    },
   },
   methods: {
-    formatNumber(number) {
-      return ('0' + number).slice(-2)
-    },
-    formatHours(h) {
-      const timezoneOffset = new Date().getTimezoneOffset() / 60 // getTimezoneOffset() in minutes, for example -60 / 60 = -1 in hours
-      return this.formatNumber(h - timezoneOffset)
-    },
     addPortion() {
       this.schedule.portions < 10 && this.schedule.portions++
     },
     removePortion() {
       this.schedule.portions > 1 && this.schedule.portions--
+    },
+    addHour() {
+      if (this.schedule.hours < 23) this.schedule.hours++
+      else this.schedule.hours = 0
+    },
+    removeHour() {
+      if (this.schedule.hours >= 1) this.schedule.hours--
+      else this.schedule.hours = 23
     },
     updateChanges(changedField, newVal, oldVal) {
       if (this.updatingFromWatcher) {
@@ -85,6 +128,17 @@ export default {
           this[`${changedField}ErrorMessage`] = err // setting error message
           console.error('setScheduleEntry error:', err)
         })
+    },
+  },
+  filters: {
+    formatNumber: function(number) {
+      return ('0' + number).slice(-2)
+    },
+    formatHours: function(h) {
+      const timezoneOffset = new Date().getTimezoneOffset() / 60 // getTimezoneOffset() in minutes, for example -60 / 60 = -1 in hours
+      let localHour = h - timezoneOffset
+      localHour = localHour === 24 ? 0 : localHour
+      return ('0' + localHour).slice(-2)
     },
   },
 }
