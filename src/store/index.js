@@ -34,24 +34,24 @@ const store = new Vuex.Store({
   },
   actions: {
     getSchedule(context) {
-      socket.once('rpc/device/getSchedule/response', response => {
-        context.commit('rpcRequestInProgress', false)
-        context.commit('setSchedule', response)
-        console.info('getSchedule response:', response)
-      })
-
-      context.commit('rpcRequestInProgress', true)
-      socket.emit('rpc/device/getSchedule')
+      return context
+        .dispatch('rpc', {
+          event: 'rpc/device/getSchedule',
+        })
+        .then(schedule => {
+          context.commit('setSchedule', schedule)
+        }) // Returns Promise, so we can handle .catch in desired Vue component in order to show error message
     },
     getEvents(context, dateUtc = new Date(Date.now())) {
-      socket.once('rpc/database/getEvents/response', response => {
-        context.commit('rpcRequestInProgress', false)
-        context.commit('setEvents', response)
-        console.info('getEvents response:', response)
-      })
-
-      context.commit('rpcRequestInProgress', true)
-      socket.emit('rpc/database/getEvents', dateUtc.getUTCFullYear(), dateUtc.getUTCMonth() + 1, dateUtc.getUTCDate())
+      return context
+        .dispatch('rpc', {
+          event: 'rpc/database/getEvents',
+          args: [dateUtc.getUTCFullYear(), dateUtc.getUTCMonth() + 1, dateUtc.getUTCDate()],
+        })
+        .then(events => {
+          context.commit('setEvents', events)
+          return events
+        }) // Returns Promise, so we can handle .catch in desired Vue component in order to show error message
     },
     setScheduleEntry(context, scheduleEntry) {
       return context.dispatch('rpc', {
@@ -65,31 +65,30 @@ const store = new Vuex.Store({
           scheduleEntry.soundIndex,
           scheduleEntry.enabled,
         ],
-      }) // returns Promise
+      }) // Returns Promise, so we can handle .catch in desired Vue component in order to show error message
     },
     rpc(context, rpcConfig) {
+      rpcConfig.args = rpcConfig.args || []
       return new Promise((resolve, reject) => {
         const timeout = setTimeout(() => {
           // unsubscribing of whatever/rpc/call/response
+          console.error(`RPC "${rpcConfig.event}" timeout`)
           socket.off(rpcConfig.event + '/response')
           reject('Remote procedure call timeout')
         }, RPC_TIMEOUT)
 
-        // subscribing to whatever/rpc/call/response
+        // subscribing to "whatever/rpc/call/response"
         socket.once(rpcConfig.event + '/response', response => {
           clearTimeout(timeout) // clearing timeout first
-
-          if (response && response.error) {
-            return reject(response.error)
-          }
-
           context.commit('rpcRequestInProgress', false)
-          console.info('setScheduleEntry response:', response)
+          console.info(`RPC "${rpcConfig.event}" response:`, response)
+          if (response && response.error) return reject(response.error)
           resolve(response)
         })
 
         context.commit('rpcRequestInProgress', true)
-        // sending rpc request
+        // sending RPC request
+        console.info(`RPC "${rpcConfig.event}" request:`, ...rpcConfig.args)
         socket.emit(rpcConfig.event, ...rpcConfig.args) // passing args in arguments
       })
     },
