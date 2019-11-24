@@ -25,13 +25,14 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapState, mapActions } from 'vuex'
 export default {
   data: () => ({
     loading: true,
   }),
   computed: mapState(['eventList']),
   methods: {
+    ...mapActions(['showSnackbar']),
     getIconClass(item) {
       let cssClass
       switch (item.type) {
@@ -74,8 +75,11 @@ export default {
     try {
       await this.$store.dispatch('getEvents')
     } catch (err) {
-      //TODO: message
       console.error('getEvents error:', err)
+      this.$store.dispatch('showSnackbar', {
+        text: err,
+        timeout: 10000,
+      })
     }
 
     this.loading = false

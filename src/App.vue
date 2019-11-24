@@ -49,6 +49,10 @@
     <v-footer app>
       <span :class="connectionStateCss">{{connectionStateString}}</span>
     </v-footer>
+    <v-snackbar v-model="snackbarModel.snackbar" :timeout="snackbarModel.timeout">
+      {{ snackbarModel.text }}
+      <v-btn text @click="snackbarModel.snackbar = false">Close</v-btn>
+    </v-snackbar>
   </v-app>
 </template>
 
@@ -57,9 +61,19 @@ import { mapState } from 'vuex'
 export default {
   data: () => ({
     drawer: null,
+    snackbarModel: {
+      snackbar: false,
+      text: '',
+      timeout: 3000,
+    },
   }),
+  watch: {
+    snackbar: function(newVal) {
+      this.snackbarModel = newVal
+    },
+  },
   computed: {
-    ...mapState(['connectionStateString', 'connected']),
+    ...mapState(['connectionStateString', 'connected', 'snackbar']),
     connectionStateCss: function() {
       return this.connected ? 'success--text' : 'error--text'
     },

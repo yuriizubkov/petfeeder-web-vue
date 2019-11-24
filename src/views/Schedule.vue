@@ -18,7 +18,7 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapState, mapActions } from 'vuex'
 import ScheduleEntry from '../components/ScheduleEntry'
 export default {
   data: () => ({
@@ -28,12 +28,16 @@ export default {
     ScheduleEntry,
   },
   computed: mapState(['schedule', 'loadingSchedule']),
+  methods: mapActions(['showSnackbar']),
   created: async function() {
     try {
       await this.$store.dispatch('getSchedule')
     } catch (err) {
-      //TODO: message
       console.error('getSchedule error:', err)
+      this.$store.dispatch('showSnackbar', {
+        text: err,
+        timeout: 10000,
+      })
     }
 
     this.loading = false

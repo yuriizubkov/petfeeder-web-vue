@@ -11,9 +11,13 @@ const store = new Vuex.Store({
     connected: false,
     connectionStateString: 'Connecting...',
     eventList: [],
-    eventListDate: new Date(Date.now()), // today UTC
     schedule: [],
     rpcRequestInProgress: false,
+    snackbar: {
+      snackbar: false,
+      text: '',
+      timeout: 3000,
+    },
   },
   mutations: {
     setConnectionState(state, isConnected) {
@@ -30,6 +34,9 @@ const store = new Vuex.Store({
     },
     setEvents(state, events) {
       state.eventList = events
+    },
+    setSnackbar(state, config) {
+      state.snackbar = config
     },
   },
   actions: {
@@ -51,7 +58,7 @@ const store = new Vuex.Store({
         .then(events => {
           context.commit('setEvents', events)
           return events
-        }) // Returns Promise, so we can handle .catch in desired Vue component in order to show error message
+        })
     },
     setScheduleEntry(context, scheduleEntry) {
       return context.dispatch('rpc', {
@@ -65,7 +72,17 @@ const store = new Vuex.Store({
           scheduleEntry.soundIndex,
           scheduleEntry.enabled,
         ],
-      }) // Returns Promise, so we can handle .catch in desired Vue component in order to show error message
+      })
+    },
+    feedManually(context) {
+      return context.dispatch('rpc', {
+        event: 'rpc/device/feedManually',
+      })
+    },
+    startVideo(context) {
+      return context.dispatch('rpc', {
+        event: 'rpc/camera/startVideoStream',
+      })
     },
     rpc(context, rpcConfig) {
       rpcConfig.args = rpcConfig.args || []
@@ -91,6 +108,18 @@ const store = new Vuex.Store({
         console.info(`RPC "${rpcConfig.event}" request:`, ...rpcConfig.args)
         socket.emit(rpcConfig.event, ...rpcConfig.args) // passing args in arguments
       })
+    },
+    showSnackbar(context, message) {
+      const config = Object.assign(
+        {
+          snackbar: true,
+          text: 'Message text',
+          timeout: 5000,
+        },
+        message
+      )
+
+      context.commit('setSnackbar', config)
     },
   },
   modules: {},
@@ -132,7 +161,38 @@ socket.on('connect_error', err => {
   store.commit('setConnectionState', false)
   store.commit('rpcRequestInProgress', false)
   store.commit('setConnectionStateStr', `Connection error: ${err.message}`)
-  console.error(err)
+  console.error('Connection error:', err)
+})
+
+/* Global events */
+socket.on('event/device/feedingstarted', data => {
+  console.info('Event "event/device/feedingstarted"', data)
+  store.dispatch('showSnackbar', {
+    text: 'Feeding has started',
+    timeout: 3000,
+  })
+})
+
+socket.on('event/device/warningnofood', () => {
+  console.warn('Event "event/device/warningnofood"')
+  store.dispatch('showSnackbar', {
+    text: 'No food left. Please add more!',
+    timeout: 10000,
+  })
+})
+
+socket.on('event/device/feedingcomplete', data => {
+  console.info('Event "event/device/feedingcomplete"', data)
+  store.dispatch('showSnackbar', {
+    text: `Feeding complete, portions issued: ${data}`,
+  })
+})
+
+socket.on('event/device/clocksynchronized', () => {
+  console.info('Event "event/device/clocksynchronized"')
+  store.dispatch('showSnackbar', {
+    text: 'Device clock has been synchronized',
+  })
 })
 
 export default store
