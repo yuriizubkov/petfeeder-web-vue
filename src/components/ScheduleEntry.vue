@@ -7,7 +7,7 @@
         <v-row>
           <v-col>
             <v-select
-              label="Portions (1 portion = ~10 gramm)"
+              label="Portions (1 = ~10 gram)"
               :error="portionsErrorMessage !== ''"
               :error-messages="portionsErrorMessage"
               :items="portions"
