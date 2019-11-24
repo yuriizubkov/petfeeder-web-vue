@@ -1,10 +1,17 @@
 <template>
   <v-card class="mb-4">
     <v-card-title>Schedule entry #{{schedule.entryIndex}}</v-card-title>
-    <v-card-subtitle>{{formatTime(schedule.hours)}}:{{formatTime(schedule.minutes)}} UTC</v-card-subtitle>
+    <v-card-subtitle>{{formatHours(schedule.hours)}}:{{formatNumber(schedule.minutes)}}</v-card-subtitle>
     <v-card-text>
       Portions:
-      <v-text-field v-model="schedule.portions" readonly hide-details single-line type="number">
+      <v-text-field
+        :error="portionsErrorMessage !== ''"
+        :error-messages="portionsErrorMessage"
+        v-model="schedule.portions"
+        readonly
+        single-line
+        type="number"
+      >
         <v-icon @click="addPortion()" slot="append">mdi-plus</v-icon>
         <v-icon @click="removePortion()" slot="prepend">mdi-minus</v-icon>
       </v-text-field>
@@ -28,12 +35,18 @@ export default {
   },
   data: function() {
     return {
+      portionsErrorMessage: '',
       enabledErrorMessage: '',
       updatingFromWatcher: false, // VERY ugly solution https://github.com/vuejs/vue/issues/1829
       schedule: this.scheduleEntry,
     }
   },
   watch: {
+    'schedule.portions': {
+      handler: function(newVal, oldVal) {
+        this.updateChanges('portions', newVal, oldVal)
+      },
+    },
     'schedule.enabled': {
       handler: function(newVal, oldVal) {
         this.updateChanges('enabled', newVal, oldVal)
@@ -41,8 +54,12 @@ export default {
     },
   },
   methods: {
-    formatTime(number) {
+    formatNumber(number) {
       return ('0' + number).slice(-2)
+    },
+    formatHours(h) {
+      const timezoneOffset = new Date().getTimezoneOffset() / 60 // getTimezoneOffset() in minutes, for example -60 / 60 = -1 in hours
+      return this.formatNumber(h - timezoneOffset)
     },
     addPortion() {
       this.schedule.portions < 10 && this.schedule.portions++
@@ -59,12 +76,13 @@ export default {
       this.$store
         .dispatch('setScheduleEntry', this.schedule)
         .then(() => {
-          this[`${changedField}ErrorMessage`] = ''
+          // resetting error message
+          this[`${changedField}ErrorMessage`] = '' // for example data object: { portionsErrorMessage = '' }
         })
         .catch(err => {
           this.updatingFromWatcher = true
           this.schedule[changedField] = oldVal // rolling back changes
-          this[`${changedField}ErrorMessage`] = err
+          this[`${changedField}ErrorMessage`] = err // setting error message
           console.error('setScheduleEntry error:', err)
         })
     },
