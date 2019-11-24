@@ -1,19 +1,24 @@
 <template>
-  <v-container class="fill-height" fluid>
-    <v-row align="center" justify="center">
+  <v-container fluid>
+    <v-row v-if="loading" align="center" justify="center">
+      <v-col cols="6" class="text-center">
+        <v-progress-circular :size="70" :width="7" indeterminate />
+      </v-col>
+    </v-row>
+    <v-row v-else align="center" justify="center">
       <v-col cols="12" sm="8" md="8">
-        <v-list subheader v-if="eventList">
+        <v-list v-if="eventList && eventList.length > 0" subheader>
           <v-list-item v-for="(item, index) in eventList" :key="index">
             <v-list-item-avatar>
               <v-icon v-text="getIconClass(item)"></v-icon>
             </v-list-item-avatar>
-
             <v-list-item-content>
               <v-list-item-title v-text="getFriendlyType(item)"></v-list-item-title>
               <v-list-item-subtitle v-text="getDateString(item)"></v-list-item-subtitle>
             </v-list-item-content>
           </v-list-item>
         </v-list>
+        <div class="text-center" v-else>So quiet here...</div>
       </v-col>
     </v-row>
   </v-container>
@@ -22,7 +27,10 @@
 <script>
 import { mapState } from 'vuex'
 export default {
-  computed: mapState(['eventList', 'rpcRequestInProgress']),
+  data: () => ({
+    loading: true,
+  }),
+  computed: mapState(['eventList']),
   methods: {
     getIconClass(item) {
       let cssClass
@@ -62,8 +70,15 @@ export default {
       )}:${pad(date.getSeconds())}`
     },
   },
-  created: function() {
-    this.$store.dispatch('getEvents')
+  created: async function() {
+    try {
+      await this.$store.dispatch('getEvents')
+    } catch (err) {
+      //TODO: message
+      console.error('getEvents error:', err)
+    }
+
+    this.loading = false
   },
 }
 </script>

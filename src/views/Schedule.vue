@@ -1,11 +1,11 @@
 <template>
   <v-container fluid>
-    <v-row v-if="schedule && schedule.length === 0" align="center" justify="center">
-      <v-col cols="1">
-        <v-progress-circular :size="70" :width="7" color="purple" indeterminate />
+    <v-row v-if="loading" align="center" justify="center">
+      <v-col cols="6" class="text-center">
+        <v-progress-circular :size="70" :width="7" indeterminate />
       </v-col>
     </v-row>
-    <v-row align="center" justify="center">
+    <v-row v-else align="center" justify="center">
       <v-col cols="12" sm="8" md="8">
         <ScheduleEntry
           :scheduleEntry="scheduleEntry"
@@ -21,12 +21,22 @@
 import { mapState } from 'vuex'
 import ScheduleEntry from '../components/ScheduleEntry'
 export default {
+  data: () => ({
+    loading: true,
+  }),
   components: {
     ScheduleEntry,
   },
-  computed: mapState(['schedule']),
-  created: function() {
-    this.$store.dispatch('getSchedule')
+  computed: mapState(['schedule', 'loadingSchedule']),
+  created: async function() {
+    try {
+      await this.$store.dispatch('getSchedule')
+    } catch (err) {
+      //TODO: message
+      console.error('getSchedule error:', err)
+    }
+
+    this.loading = false
   },
 }
 </script>
