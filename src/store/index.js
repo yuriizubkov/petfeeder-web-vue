@@ -8,6 +8,7 @@ Vue.use(Vuex)
 
 const store = new Vuex.Store({
   state: {
+    h264data: null,
     connected: false,
     connectionStateString: 'Connecting...',
     eventList: [],

@@ -5,9 +5,9 @@
         <v-card id="videCard" ref="videoCard">
           <canvas id="videoCanvas" ref="videoCanvas"></canvas>
           <v-card-actions>
-            <v-btn :disabled="rpcRequestInProgress || !connected" :loading="rpcRequestInProgress" @click="startVideo"
-              >Start Video</v-btn
-            >
+            <v-btn :disabled="rpcRequestInProgress || !connected" :loading="rpcRequestInProgress" @click="startVideo">{{
+              videoButtonCaption
+            }}</v-btn>
             <v-btn :disabled="rpcRequestInProgress || !connected" :loading="rpcRequestInProgress" @click="feed"
               >Give 1 portion</v-btn
             >
@@ -23,21 +23,45 @@ import { mapState, mapActions } from 'vuex'
 import backImageUrl from '../assets/camera_back.png'
 import BroadwayPlayer from 'broadway'
 
-const player = new BroadwayPlayer(),
+const player = new BroadwayPlayer()
 
 export default {
   data: () => ({
     backImage: null,
     videoPlaying: false,
   }),
-  computed: mapState(['rpcRequestInProgress', 'connected']),
+  computed: {
+    ...mapState(['rpcRequestInProgress', 'connected', 'h264data']),
+    videoButtonCaption: function() {
+      return this.videoPlaying ? 'Stop video' : 'Start video'
+    },
+  },
+  watch: {
+    h264data: newVal => {
+      if (!this.videoPlaying) return
+      player.decode(newVal)
+    },
+  },
   methods: {
     ...mapActions(['showSnackbar']),
     async startVideo() {
       try {
         await this.$store.dispatch('startVideo')
+        this.playerStart()
       } catch (err) {
         console.error('startVideo error:', err)
+        this.$store.dispatch('showSnackbar', {
+          text: err,
+          timeout: 10000,
+        })
+      }
+    },
+    async stopVideo() {
+      try {
+        this.playerStop()
+        await this.$store.dispatch('stopVideo')
+      } catch (err) {
+        console.error('stopVideo error:', err)
         this.$store.dispatch('showSnackbar', {
           text: err,
           timeout: 10000,
@@ -54,6 +78,15 @@ export default {
           timeout: 10000,
         })
       }
+    },
+    playerStart() {
+      this.videoPlaying = true
+      player.canvas = this.$refs.videoCanvas
+    },
+    playerStop() {
+      this.videoPlaying = false
+      player.canvas = null
+      this.drawBackImage()
     },
     resizeCanvas() {
       const canvas = this.$refs.videoCanvas
