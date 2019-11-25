@@ -2,13 +2,12 @@ import Vue from 'vue'
 import Vuex from 'vuex'
 import io from 'socket.io-client'
 
-const RPC_TIMEOUT = 3000
+const RPC_TIMEOUT = 10000
 
 Vue.use(Vuex)
 
 const store = new Vuex.Store({
   state: {
-    h264data: null,
     connected: false,
     connectionStateString: 'Connecting...',
     eventList: [],
@@ -38,9 +37,6 @@ const store = new Vuex.Store({
     },
     setSnackbar(state, config) {
       state.snackbar = config
-    },
-    setH264Data(state, data) {
-      state.h264data = data
     },
   },
   actions: {
@@ -88,6 +84,11 @@ const store = new Vuex.Store({
         event: 'rpc/camera/startVideoStream',
       })
     },
+    stopVideo(context) {
+      return context.dispatch('rpc', {
+        event: 'rpc/camera/stopVideoStream',
+      })
+    },
     rpc(context, rpcConfig) {
       rpcConfig.args = rpcConfig.args || []
       return new Promise((resolve, reject) => {
@@ -95,6 +96,7 @@ const store = new Vuex.Store({
           // unsubscribing of whatever/rpc/call/response
           console.error(`RPC "${rpcConfig.event}" timeout`)
           socket.off(rpcConfig.event + '/response')
+          context.commit('rpcRequestInProgress', false)
           reject('Remote procedure call timeout')
         }, RPC_TIMEOUT)
 
@@ -200,9 +202,6 @@ socket.on('event/device/clocksynchronized', () => {
   })
 })
 
-socket.on('event/video/h264data', data => {
-  console.info('h264 data')
-  store.commit('setH264Data', data)
-})
+store.socket = socket
 
 export default store

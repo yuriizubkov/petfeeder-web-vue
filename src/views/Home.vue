@@ -5,9 +5,13 @@
         <v-card id="videCard" ref="videoCard">
           <canvas id="videoCanvas" ref="videoCanvas"></canvas>
           <v-card-actions>
-            <v-btn :disabled="rpcRequestInProgress || !connected" :loading="rpcRequestInProgress" @click="startVideo">{{
-              videoButtonCaption
-            }}</v-btn>
+            <v-btn
+              :disabled="rpcRequestInProgress || !connected"
+              :loading="rpcRequestInProgress"
+              @click="videoPlaying ? stopVideo() : startVideo()"
+            >
+              {{ videoButtonCaption }}
+            </v-btn>
             <v-btn :disabled="rpcRequestInProgress || !connected" :loading="rpcRequestInProgress" @click="feed"
               >Give 1 portion</v-btn
             >
@@ -21,35 +25,48 @@
 <script>
 import { mapState, mapActions } from 'vuex'
 import backImageUrl from '../assets/camera_back.png'
-import BroadwayPlayer from 'broadway'
+import Broadway from 'broadway-player'
+import { yuv420ProgPlanarToRgb, putRGBToRGBA } from '../plugins/YUV420toRGB'
 
-const player = new BroadwayPlayer()
+const decoder = new Broadway.Decoder()
 
 export default {
+  canvasCtx: null,
   data: () => ({
     backImage: null,
     videoPlaying: false,
   }),
   computed: {
-    ...mapState(['rpcRequestInProgress', 'connected', 'h264data']),
+    ...mapState(['rpcRequestInProgress', 'connected']),
     videoButtonCaption: function() {
       return this.videoPlaying ? 'Stop video' : 'Start video'
     },
   },
-  watch: {
-    h264data: newVal => {
-      if (!this.videoPlaying) return
-      player.decode(newVal)
-    },
-  },
   methods: {
     ...mapActions(['showSnackbar']),
+    decodeVideo: function(data) {
+      const nalPrefix = new Uint8Array([0, 0, 0, 1])
+      const buffer = new Uint8Array(data)
+      const concat = new Uint8Array(nalPrefix.length + buffer.length)
+      concat.set(nalPrefix)
+      concat.set(buffer, nalPrefix.length)
+      decoder.decode(concat)
+    },
+    onDecoded(buffer, width, height) {
+      const progRGB = yuv420ProgPlanarToRgb(buffer, width, height)
+      const imageData = this.canvasCtx.getImageData(0, 0, width, height)
+      putRGBToRGBA(imageData.data, progRGB, width, height)
+
+      this.canvasCtx.putImageData(imageData, 0, 0)
+    },
     async startVideo() {
       try {
+        this.$store.socket.on('event/camera/h264data', this.decodeVideo)
         await this.$store.dispatch('startVideo')
         this.playerStart()
       } catch (err) {
         console.error('startVideo error:', err)
+        this.$store.socket.off('event/camera/h264data', this.decodeVideo)
         this.$store.dispatch('showSnackbar', {
           text: err,
           timeout: 10000,
@@ -59,6 +76,7 @@ export default {
     async stopVideo() {
       try {
         this.playerStop()
+        this.$store.socket.off('event/camera/h264data', this.decodeVideo)
         await this.$store.dispatch('stopVideo')
       } catch (err) {
         console.error('stopVideo error:', err)
@@ -81,11 +99,11 @@ export default {
     },
     playerStart() {
       this.videoPlaying = true
-      player.canvas = this.$refs.videoCanvas
+      //player.canvas = this.$refs.videoCanvas
     },
     playerStop() {
       this.videoPlaying = false
-      player.canvas = null
+      //player.canvas = null
       this.drawBackImage()
     },
     resizeCanvas() {
@@ -96,8 +114,8 @@ export default {
       canvas.width = card.clientWidth
     },
     drawBackImage() {
-      const canvasCtx = this.$refs.videoCanvas.getContext('2d')
-      canvasCtx.drawImage(
+      this.canvasCtx.clearRect(0, 0, this.canvasCtx.canvas.width, this.canvasCtx.canvas.height)
+      this.canvasCtx.drawImage(
         this.backImage, // image
         0, // source image from Y
         0, // source image from X
@@ -105,8 +123,8 @@ export default {
         this.backImage.height, // source image height
         0, // destination Y
         0, // destination X
-        canvasCtx.canvas.width, // destination width
-        canvasCtx.canvas.height // destination height
+        this.canvasCtx.canvas.width, // destination width
+        this.canvasCtx.canvas.height // destination height
       )
     },
     onWindowResize() {
@@ -114,9 +132,13 @@ export default {
       if (!this.videoPlaying) this.drawBackImage()
     },
   },
+  created() {
+    decoder.onPictureDecoded = this.onDecoded
+  },
   mounted() {
     // when mounted and elements added to DOM
     this.$nextTick(() => {
+      this.canvasCtx = this.$refs.videoCanvas.getContext('2d')
       const backImage = new Image()
       backImage.onload = () => {
         this.backImage = backImage
@@ -130,6 +152,7 @@ export default {
   },
   beforeDestroy() {
     window.removeEventListener('resize', this.onWindowResize)
+    this.stopVideo()
   },
 }
 </script>
