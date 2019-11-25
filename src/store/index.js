@@ -39,6 +39,9 @@ const store = new Vuex.Store({
     setSnackbar(state, config) {
       state.snackbar = config
     },
+    setH264Data(state, data) {
+      state.h264data = data
+    },
   },
   actions: {
     getSchedule(context) {
@@ -195,6 +198,11 @@ socket.on('event/device/clocksynchronized', () => {
   store.dispatch('showSnackbar', {
     text: 'Device clock has been synchronized',
   })
+})
+
+socket.on('event/video/h264data', data => {
+  console.info('h264 data')
+  store.commit('setH264Data', data)
 })
 
 export default store
