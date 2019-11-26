@@ -14,7 +14,7 @@
             </v-list-item-avatar>
             <v-list-item-content>
               <v-list-item-title v-text="getFriendlyType(item)"></v-list-item-title>
-              <v-list-item-subtitle v-text="getDateString(item)"></v-list-item-subtitle>
+              <v-list-item-subtitle>{{getDateString(item)}} (GMT {{-timezoneOffset>=0 ? '+' : '-'}}{{-timezoneOffset}})</v-list-item-subtitle>
             </v-list-item-content>
           </v-list-item>
         </v-list>
@@ -31,6 +31,7 @@
 import { mapState, mapActions, mapMutations } from 'vuex'
 export default {
   data: () => ({
+    timezoneOffset: new Date().getTimezoneOffset() / 60,
     loading: true,
   }),
   computed: mapState(['eventList']),

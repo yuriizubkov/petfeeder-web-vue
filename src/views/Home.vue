@@ -10,12 +10,17 @@
               :disabled="rpcRequestInProgress || !connected"
               :loading="videoBtnLoading"
               @click="videoPlaying ? stopVideo() : startVideo()"
-            >{{ videoButtonCaption }}</v-btn>
+            >
+              <v-icon left>{{videoPlaying? 'mdi-stop' : 'mdi-play'}}</v-icon>video
+            </v-btn>
             <v-btn
               :disabled="rpcRequestInProgress || !connected"
               :loading="feedBtnLoading"
               @click="feed"
-            >Give 1 portion</v-btn>
+            >Feed me!</v-btn>
+            <v-btn>
+              <v-icon left>mdi-camera</v-icon>Photo
+            </v-btn>
           </v-card-actions>
         </v-card>
       </v-col>
@@ -39,9 +44,6 @@ export default {
   }),
   computed: {
     ...mapState(['rpcRequestInProgress', 'connected']),
-    videoButtonCaption: function() {
-      return this.videoPlaying ? 'Stop video' : 'Start video'
-    },
   },
   methods: {
     ...mapActions(['showSnackbar']),
