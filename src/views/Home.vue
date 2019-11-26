@@ -3,16 +3,17 @@
     <v-row align="center" justify="center">
       <v-col cols="12" sm="8" md="8">
         <v-card id="videCard" ref="videoCard">
+          <!-- Author of the background image: https://pixabay.com/vectors/dog-cat-animal-pet-cute-1517090/ -->
           <canvas id="videoCanvas" ref="videoCanvas"></canvas>
           <v-card-actions>
             <v-btn
               :disabled="rpcRequestInProgress || !connected"
-              :loading="rpcRequestInProgress"
+              :loading="videoBtnLoading"
               @click="videoPlaying ? stopVideo() : startVideo()"
             >{{ videoButtonCaption }}</v-btn>
             <v-btn
               :disabled="rpcRequestInProgress || !connected"
-              :loading="rpcRequestInProgress"
+              :loading="feedBtnLoading"
               @click="feed"
             >Give 1 portion</v-btn>
           </v-card-actions>
@@ -33,6 +34,8 @@ export default {
   data: () => ({
     backImage: null,
     videoPlaying: false,
+    videoBtnLoading: false,
+    feedBtnLoading: false,
   }),
   computed: {
     ...mapState(['rpcRequestInProgress', 'connected']),
@@ -53,19 +56,20 @@ export default {
     onDecoded(buffer, width, height) {
       // rescaling and redrawing on 2d canvas
       this.canvasCtx.drawImage(
-        this.player.canvas,
-        0,
-        0,
-        width,
-        height,
-        0,
-        0,
-        this.canvasCtx.canvas.width,
-        this.canvasCtx.canvas.height
+        this.player.canvas, // image
+        0, // source image from Y
+        0, // source image from X
+        width, // source image width
+        height, // source image height
+        0, // destination Y
+        0, // destination X
+        this.canvasCtx.canvas.width, // destination width
+        this.canvasCtx.canvas.height // destination height
       )
     },
     async startVideo() {
       try {
+        this.videoBtnLoading = true
         this.$store.socket.on('event/camera/h264data', this.decodeVideo)
         await this.$store.dispatch('startVideo')
         this.playerStart()
@@ -77,9 +81,12 @@ export default {
           timeout: 10000,
         })
       }
+
+      this.videoBtnLoading = false
     },
     async stopVideo() {
       try {
+        this.videoBtnLoading = true
         this.playerStop()
         this.$store.socket.off('event/camera/h264data', this.decodeVideo)
         await this.$store.dispatch('stopVideo')
@@ -90,9 +97,12 @@ export default {
           timeout: 10000,
         })
       }
+
+      this.videoBtnLoading = false
     },
     async feed() {
       try {
+        this.feedBtnLoading = true
         await this.$store.dispatch('feedManually')
       } catch (err) {
         console.error('feed error:', err)
@@ -101,6 +111,8 @@ export default {
           timeout: 10000,
         })
       }
+
+      this.feedBtnLoading = false
     },
     playerStart() {
       this.videoPlaying = true
@@ -148,7 +160,7 @@ export default {
     this.player.onPictureDecoded = this.onDecoded
   },
   mounted() {
-    // when mounted and elements added to DOM
+    // when component mounted and elements added to the DOM
     this.$nextTick(() => {
       this.canvasCtx = this.$refs.videoCanvas.getContext('2d')
       const backImage = new Image()
@@ -159,7 +171,7 @@ export default {
       }
 
       window.addEventListener('resize', this.onWindowResize)
-      backImage.src = backImageUrl // loading background image (Author: https://pixabay.com/vectors/dog-cat-animal-pet-cute-1517090/)
+      backImage.src = backImageUrl // loading background image
     })
   },
   beforeDestroy() {
