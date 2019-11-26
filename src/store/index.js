@@ -132,7 +132,7 @@ const store = new Vuex.Store({
   modules: {},
 })
 
-const socket = io('http://192.168.8.106:65500', {
+const socket = io('http://:65500', {
   path: '/api',
   transports: ['websocket'],
 })
