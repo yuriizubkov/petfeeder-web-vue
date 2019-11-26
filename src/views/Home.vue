@@ -18,7 +18,7 @@
               :loading="feedBtnLoading"
               @click="feed"
             >Feed me!</v-btn>
-            <v-btn :disabled="rpcRequestInProgress || !connected">
+            <v-btn :disabled="rpcRequestInProgress || !connected" @click="takePhoto">
               <v-icon left>mdi-camera</v-icon>Photo
             </v-btn>
           </v-card-actions>
@@ -115,6 +115,12 @@ export default {
       }
 
       this.feedBtnLoading = false
+    },
+    takePhoto() {
+      this.$store.dispatch('showSnackbar', {
+        text: 'Not implemented yet ;) stay tuned',
+        timeout: 10000,
+      })
     },
     playerStart() {
       this.videoPlaying = true
