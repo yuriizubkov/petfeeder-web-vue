@@ -46,7 +46,7 @@ export default {
   methods: {
     ...mapActions(['showSnackbar']),
     decodeVideo: function(data) {
-      const nalPrefix = new Uint8Array([0, 0, 0, 1])
+      const nalPrefix = new Uint8Array([0, 0, 0, 1]) // Adding NAL Unit header
       const buffer = new Uint8Array(data)
       const concat = new Uint8Array(nalPrefix.length + buffer.length)
       concat.set(nalPrefix)
