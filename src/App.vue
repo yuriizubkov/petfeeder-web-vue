@@ -39,7 +39,9 @@
 
     <v-app-bar app clipped-left>
       <v-app-bar-nav-icon @click.stop="drawer = !drawer" />
-      <v-toolbar-title>Smart Pet Feeder</v-toolbar-title>
+      <v-toolbar-title>
+        <router-link tag="span" class="title-pointer" to="/">Smart Pet Feeder</router-link>
+      </v-toolbar-title>
     </v-app-bar>
 
     <v-content>
@@ -83,3 +85,9 @@ export default {
   },
 }
 </script>
+
+<style scoped>
+.title-pointer {
+  cursor: pointer;
+}
+</style>
