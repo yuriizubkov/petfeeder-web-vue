@@ -31,8 +31,8 @@ import Broadway from 'broadway-player'
 export default {
   canvasCtx: null,
   player: null,
+  backImage: null,
   data: () => ({
-    backImage: null,
     videoPlaying: false,
     videoBtnLoading: false,
     feedBtnLoading: false,
