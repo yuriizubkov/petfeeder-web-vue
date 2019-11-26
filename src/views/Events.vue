@@ -6,8 +6,8 @@
       </v-col>
     </v-row>
     <v-row v-else align="center" justify="center">
-      <v-col cols="12" sm="8" md="8">
-        <v-list v-if="eventList && eventList.length > 0" subheader>
+      <v-col class="pl-1 pr-1 pt-0" cols="12" md="8">
+        <v-list dense v-if="eventList && eventList.length > 0" subheader>
           <v-list-item v-for="(item, index) in eventList" :key="index">
             <v-list-item-avatar>
               <v-icon v-text="getIconClass(item)"></v-icon>

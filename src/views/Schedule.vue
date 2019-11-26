@@ -6,7 +6,7 @@
       </v-col>
     </v-row>
     <v-row v-else align="center" justify="center">
-      <v-col cols="12" sm="8" md="8">
+      <v-col class="pl-1 pr-1 pt-0" cols="12" md="8">
         <ScheduleEntry
           :scheduleEntry="scheduleEntry"
           :key="scheduleEntry.entryIndex"
