@@ -56,6 +56,12 @@ export default {
       this.player.decode(concat)
     },
     onDecoded(buffer, width, height) {
+      if (this.canvasCtx.busy) {
+        console.info('Skipping frame')
+        return // frame skipping if still drawing on 2d canvas
+      }
+
+      this.canvasCtx.busy = true
       // rescaling and redrawing on 2d canvas
       this.canvasCtx.drawImage(
         this.player.canvas, // image
@@ -68,6 +74,8 @@ export default {
         this.canvasCtx.canvas.width, // destination width
         this.canvasCtx.canvas.height // destination height
       )
+
+      this.canvasCtx.busy = false
     },
     async startVideo() {
       try {
@@ -159,6 +167,7 @@ export default {
   },
   created() {
     this.player = new Broadway.Player({
+      useWorker: true,
       size: {
         width: 640,
         height: 480,
