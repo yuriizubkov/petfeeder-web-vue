@@ -176,7 +176,7 @@ export default {
   },
   beforeDestroy() {
     window.removeEventListener('resize', this.onWindowResize)
-    this.stopVideo()
+    this.videoPlaying && this.stopVideo()
   },
 }
 </script>
