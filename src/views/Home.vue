@@ -18,7 +18,7 @@
               :loading="feedBtnLoading"
               @click="feed"
             >Feed me!</v-btn>
-            <v-btn>
+            <v-btn :disabled="rpcRequestInProgress || !connected">
               <v-icon left>mdi-camera</v-icon>Photo
             </v-btn>
           </v-card-actions>
