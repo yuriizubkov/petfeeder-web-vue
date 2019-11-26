@@ -5,7 +5,7 @@
         <v-card id="videCard" ref="videoCard">
           <!-- Author of the background image: https://pixabay.com/vectors/dog-cat-animal-pet-cute-1517090/ -->
           <canvas id="videoCanvas" ref="videoCanvas"></canvas>
-          <v-card-actions>
+          <v-card-actions class="d-flex justify-center">
             <v-btn
               :disabled="rpcRequestInProgress || !connected"
               :loading="videoBtnLoading"
