@@ -9,12 +9,12 @@
               :disabled="rpcRequestInProgress || !connected"
               :loading="rpcRequestInProgress"
               @click="videoPlaying ? stopVideo() : startVideo()"
-            >
-              {{ videoButtonCaption }}
-            </v-btn>
-            <v-btn :disabled="rpcRequestInProgress || !connected" :loading="rpcRequestInProgress" @click="feed"
-              >Give 1 portion</v-btn
-            >
+            >{{ videoButtonCaption }}</v-btn>
+            <v-btn
+              :disabled="rpcRequestInProgress || !connected"
+              :loading="rpcRequestInProgress"
+              @click="feed"
+            >Give 1 portion</v-btn>
           </v-card-actions>
         </v-card>
       </v-col>
@@ -26,12 +26,10 @@
 import { mapState, mapActions } from 'vuex'
 import backImageUrl from '../assets/camera_back.png'
 import Broadway from 'broadway-player'
-import { yuv420ProgPlanarToRgb, putRGBToRGBA } from '../plugins/YUV420toRGB'
-
-const decoder = new Broadway.Decoder()
 
 export default {
   canvasCtx: null,
+  player: null,
   data: () => ({
     backImage: null,
     videoPlaying: false,
@@ -50,14 +48,21 @@ export default {
       const concat = new Uint8Array(nalPrefix.length + buffer.length)
       concat.set(nalPrefix)
       concat.set(buffer, nalPrefix.length)
-      decoder.decode(concat)
+      this.player.decode(concat)
     },
     onDecoded(buffer, width, height) {
-      const progRGB = yuv420ProgPlanarToRgb(buffer, width, height)
-      const imageData = this.canvasCtx.getImageData(0, 0, width, height)
-      putRGBToRGBA(imageData.data, progRGB, width, height)
-
-      this.canvasCtx.putImageData(imageData, 0, 0)
+      // rescaling and redrawing on 2d canvas
+      this.canvasCtx.drawImage(
+        this.player.canvas,
+        0,
+        0,
+        width,
+        height,
+        0,
+        0,
+        this.canvasCtx.canvas.width,
+        this.canvasCtx.canvas.height
+      )
     },
     async startVideo() {
       try {
@@ -133,7 +138,14 @@ export default {
     },
   },
   created() {
-    decoder.onPictureDecoded = this.onDecoded
+    this.player = new Broadway.Player({
+      size: {
+        width: 640,
+        height: 480,
+      },
+    })
+
+    this.player.onPictureDecoded = this.onDecoded
   },
   mounted() {
     // when mounted and elements added to DOM
