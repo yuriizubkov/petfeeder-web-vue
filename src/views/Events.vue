@@ -18,20 +18,24 @@
             </v-list-item-content>
           </v-list-item>
         </v-list>
-        <div class="text-center" v-else>So quiet here...</div>
+        <div
+          class="text-center"
+          v-if="!loading && (!eventList || eventList.length === 0)"
+        >So quiet here...</div>
       </v-col>
     </v-row>
   </v-container>
 </template>
 
 <script>
-import { mapState, mapActions } from 'vuex'
+import { mapState, mapActions, mapMutations } from 'vuex'
 export default {
   data: () => ({
     loading: true,
   }),
   computed: mapState(['eventList']),
   methods: {
+    ...mapMutations(['setEvents']),
     ...mapActions(['showSnackbar']),
     getIconClass(item) {
       let cssClass
@@ -41,6 +45,9 @@ export default {
           break
         case 'clocksync':
           cssClass = 'mdi-clock'
+          break
+        case 'warning':
+          cssClass = 'mdi-alert'
           break
       }
 
@@ -56,6 +63,19 @@ export default {
           break
         case 'clocksync':
           friendlyType = 'Clock synchronization'
+          break
+        case 'warning':
+          switch (item.data.type) {
+            case 'nofood':
+              friendlyType = 'Warning. No food left!'
+              break
+            default:
+              friendlyType = JSON.stringify(item)
+              break
+          }
+          break
+        default:
+          friendlyType = JSON.stringify(item)
           break
       }
 
@@ -73,6 +93,7 @@ export default {
   },
   created: async function() {
     try {
+      this.$store.commit('setEvents', [])
       await this.$store.dispatch('getEvents')
     } catch (err) {
       console.error('getEvents error:', err)

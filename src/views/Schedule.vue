@@ -27,10 +27,11 @@ export default {
   components: {
     ScheduleEntry,
   },
-  computed: mapState(['schedule', 'loadingSchedule']),
+  computed: mapState(['schedule', 'loadingSchedule', 'setSchedule']),
   methods: mapActions(['showSnackbar']),
   created: async function() {
     try {
+      this.$store.commit('setSchedule', [])
       await this.$store.dispatch('getSchedule')
     } catch (err) {
       console.error('getSchedule error:', err)
