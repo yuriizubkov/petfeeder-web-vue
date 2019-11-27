@@ -48,6 +48,7 @@ export default {
   methods: {
     ...mapActions(['showSnackbar']),
     decodeVideo: function(data) {
+      if (!this.videoPlaying) return
       const nalPrefix = new Uint8Array([0, 0, 0, 1]) // Adding NAL Unit header
       const buffer = new Uint8Array(data)
       const concat = new Uint8Array(nalPrefix.length + buffer.length)
@@ -82,7 +83,7 @@ export default {
         this.videoBtnLoading = true
         this.$store.socket.on('event/camera/h264data', this.decodeVideo)
         await this.$store.dispatch('startVideo')
-        this.playerStart()
+        this.videoPlaying = true
       } catch (err) {
         console.error('startVideo error:', err)
         this.$store.socket.off('event/camera/h264data', this.decodeVideo)
@@ -97,7 +98,6 @@ export default {
     async stopVideo() {
       try {
         this.videoBtnLoading = true
-        this.playerStop()
         this.$store.socket.off('event/camera/h264data', this.decodeVideo)
         await this.$store.dispatch('stopVideo')
       } catch (err) {
@@ -108,7 +108,9 @@ export default {
         })
       }
 
+      this.videoPlaying = false
       this.videoBtnLoading = false
+      this.drawBackImage()
     },
     async feed() {
       try {
@@ -129,15 +131,6 @@ export default {
         text: 'Not implemented yet ;) stay tuned',
         timeout: 10000,
       })
-    },
-    playerStart() {
-      this.videoPlaying = true
-      //player.canvas = this.$refs.videoCanvas
-    },
-    playerStop() {
-      this.videoPlaying = false
-      //player.canvas = null
-      this.drawBackImage()
     },
     resizeCanvas() {
       const canvas = this.$refs.videoCanvas
