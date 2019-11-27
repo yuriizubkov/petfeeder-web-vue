@@ -1,6 +1,7 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 import io from 'socket.io-client'
+import settings from '../../public/settings.json'
 
 const RPC_TIMEOUT = 10000
 
@@ -132,7 +133,7 @@ const store = new Vuex.Store({
   modules: {},
 })
 
-const socket = io('http://:65500', {
+const socket = io(`http://:${settings.port}`, {
   path: '/api',
   transports: ['websocket'],
 })
