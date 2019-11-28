@@ -45,6 +45,14 @@ export default {
   computed: {
     ...mapState(['rpcRequestInProgress', 'connected']),
   },
+  watch: {
+    connected: function(newVal) {
+      if (newVal === false && this.videoPlaying) {
+        this.videoPlaying = false
+        this.drawBackImage()
+      }
+    },
+  },
   methods: {
     ...mapActions(['showSnackbar']),
     decodeVideo: function(data) {
