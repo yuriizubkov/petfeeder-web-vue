@@ -1,5 +1,39 @@
 <template>
   <v-container fluid>
+    <v-row align="center" justify="center">
+      <v-col class="pl-1 pr-1 pt-0" cols="12" md="8">
+        <v-card disabled>
+          <v-container class="pt-0 pb-0">
+            <v-row>
+              <v-col class="pb-0">
+                <v-select
+                  dense
+                  label="Year"
+                  :items="[todayDate.getFullYear()]"
+                  :value="todayDate.getFullYear()"
+                />
+              </v-col>
+              <v-col class="pb-0">
+                <v-select
+                  dense
+                  label="Month"
+                  :items="[this.df(todayDate.getMonth() + 1)]"
+                  :value="this.df(todayDate.getMonth() + 1)"
+                />
+              </v-col>
+              <v-col class="pb-0">
+                <v-select
+                  dense
+                  label="Day"
+                  :items="[this.df(todayDate.getDate())]"
+                  :value="this.df(todayDate.getDate())"
+                />
+              </v-col>
+            </v-row>
+          </v-container>
+        </v-card>
+      </v-col>
+    </v-row>
     <v-row v-if="loading" align="center" justify="center">
       <v-col cols="6" class="text-center">
         <v-progress-circular :size="70" :width="7" indeterminate />
@@ -34,6 +68,7 @@
 import { mapState, mapActions, mapMutations } from 'vuex'
 export default {
   data: () => ({
+    todayDate: new Date(),
     timezoneOffset: new Date().getTimezoneOffset() / 60,
     loading: true,
   }),
@@ -85,14 +120,14 @@ export default {
 
       return friendlyType
     },
+    df(number) {
+      return ('0' + number).slice(-2)
+    },
     getDateString(item) {
-      const pad = function(number) {
-        return ('0' + number).slice(-2)
-      }
       const date = new Date(item.timestamp)
-      return `${date.getFullYear()}.${pad(date.getMonth() + 1)}.${pad(date.getDate())} ${pad(date.getHours())}:${pad(
-        date.getMinutes()
-      )}:${pad(date.getSeconds())}`
+      return `${date.getFullYear()}.${this.df(date.getMonth() + 1)}.${this.df(date.getDate())} ${this.df(
+        date.getHours()
+      )}:${this.df(date.getMinutes())}:${this.df(date.getSeconds())}`
     },
   },
   created: async function() {

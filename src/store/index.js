@@ -18,6 +18,15 @@ const store = new Vuex.Store({
     connected: false,
     connectionStateString: 'Connecting...',
     eventList: [],
+    eventDates: {
+      2019: {
+        11: {
+          26: 10,
+          27: 9,
+          28: 5,
+        },
+      },
+    },
     schedule: [],
     rpcRequestInProgress: false,
     snackbar: {
