@@ -14,14 +14,17 @@
             </v-list-item-avatar>
             <v-list-item-content>
               <v-list-item-title v-text="getFriendlyType(item)"></v-list-item-title>
-              <v-list-item-subtitle
-                >{{ getDateString(item) }} (GMT {{ -timezoneOffset >= 0 ? '+' : '-'
-                }}{{ -timezoneOffset }})</v-list-item-subtitle
-              >
+              <v-list-item-subtitle>
+                {{ getDateString(item) }} (GMT {{ -timezoneOffset >= 0 ? '+' : '-'
+                }}{{ -timezoneOffset }})
+              </v-list-item-subtitle>
             </v-list-item-content>
           </v-list-item>
         </v-list>
-        <div class="text-center" v-if="!loading && (!eventList || eventList.length === 0)">So quiet here...</div>
+        <div
+          class="text-center"
+          v-if="!loading && (!eventList || eventList.length === 0)"
+        >So quiet here...</div>
       </v-col>
     </v-row>
   </v-container>
@@ -58,8 +61,8 @@ export default {
       let friendlyType = item.type
       switch (item.type) {
         case 'feeding':
-          friendlyType = `Feeding. Issued portions: ${item.data.issuedPortions}, scheduled: ${
-            item.data.scheduled ? 'Yes' : 'No'
+          friendlyType = `Feeding. Issued portions: ${item.data.issuedPortions}, ${
+            item.data.scheduled ? 'Auto' : 'Manual'
           }${item.data.issuedPortions < item.data.scheduledPortions ? '. Motor stuck!' : ''}`
           break
         case 'clocksync':
