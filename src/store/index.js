@@ -14,6 +14,7 @@ Vue.use(Vuex)
 
 const store = new Vuex.Store({
   state: {
+    title: 'Smart Pet Feeder',
     connected: false,
     connectionStateString: 'Connecting...',
     eventList: [],
@@ -43,6 +44,9 @@ const store = new Vuex.Store({
     },
     setSnackbar(state, config) {
       state.snackbar = config
+    },
+    setTitle(state, title) {
+      state.title = title
     },
   },
   actions: {

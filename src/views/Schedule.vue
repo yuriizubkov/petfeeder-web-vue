@@ -18,7 +18,7 @@
 </template>
 
 <script>
-import { mapState, mapActions } from 'vuex'
+import { mapState, mapActions, mapMutations } from 'vuex'
 import ScheduleEntry from '../components/ScheduleEntry'
 export default {
   data: () => ({
@@ -28,8 +28,12 @@ export default {
     ScheduleEntry,
   },
   computed: mapState(['schedule', 'loadingSchedule', 'setSchedule']),
-  methods: mapActions(['showSnackbar']),
+  methods: {
+    ...mapMutations(['setTitle']),
+    ...mapActions(['showSnackbar']),
+  },
   created: async function() {
+    this.setTitle('Schedule')
     try {
       this.$store.commit('setSchedule', [])
       await this.$store.dispatch('getSchedule')

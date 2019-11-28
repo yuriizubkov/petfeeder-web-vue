@@ -40,7 +40,7 @@
     <v-app-bar app clipped-left>
       <v-app-bar-nav-icon @click.stop="drawer = !drawer" />
       <v-toolbar-title>
-        <router-link tag="span" class="title-pointer" to="/">Smart Pet Feeder</router-link>
+        <router-link tag="span" class="title-pointer" to="/">{{ title }}</router-link>
       </v-toolbar-title>
     </v-app-bar>
 
@@ -49,7 +49,7 @@
     </v-content>
 
     <v-footer app>
-      <span :class="connectionStateCss">{{connectionStateString}}</span>
+      <span :class="connectionStateCss">{{ connectionStateString }}</span>
     </v-footer>
     <v-snackbar v-model="snackbarModel.snackbar" :timeout="snackbarModel.timeout">
       {{ snackbarModel.text }}
@@ -75,7 +75,7 @@ export default {
     },
   },
   computed: {
-    ...mapState(['connectionStateString', 'connected', 'snackbar']),
+    ...mapState(['connectionStateString', 'connected', 'snackbar', 'title']),
     connectionStateCss: function() {
       return this.connected ? 'success--text' : 'error--text'
     },

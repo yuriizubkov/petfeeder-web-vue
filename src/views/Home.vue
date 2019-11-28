@@ -11,13 +11,12 @@
               :loading="videoBtnLoading"
               @click="videoPlaying ? stopVideo() : startVideo()"
             >
-              <v-icon left>{{videoPlaying? 'mdi-stop' : 'mdi-play'}}</v-icon>video
+              <v-icon left>{{ videoPlaying ? 'mdi-stop' : 'mdi-play' }}</v-icon
+              >video
             </v-btn>
-            <v-btn
-              :disabled="rpcRequestInProgress || !connected"
-              :loading="feedBtnLoading"
-              @click="feed"
-            >Feed me!</v-btn>
+            <v-btn :disabled="rpcRequestInProgress || !connected" :loading="feedBtnLoading" @click="feed"
+              >Feed me!</v-btn
+            >
             <v-btn :disabled="rpcRequestInProgress || !connected" @click="takePhoto">
               <v-icon left>mdi-camera</v-icon>Photo
             </v-btn>
@@ -29,7 +28,7 @@
 </template>
 
 <script>
-import { mapState, mapActions } from 'vuex'
+import { mapState, mapActions, mapMutations } from 'vuex'
 import backImageUrl from '../assets/camera_back.png'
 import Broadway from 'broadway-player'
 
@@ -54,6 +53,7 @@ export default {
     },
   },
   methods: {
+    ...mapMutations(['setTitle']),
     ...mapActions(['showSnackbar']),
     decodeVideo: function(data) {
       if (!this.videoPlaying) return
@@ -167,6 +167,7 @@ export default {
     },
   },
   created() {
+    this.setTitle('Smart Pet Feeder')
     this.player = new Broadway.Player({
       useWorker: true,
       size: {
