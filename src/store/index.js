@@ -1,7 +1,12 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 import io from 'socket.io-client'
-import settings from '../../public/settings.json'
+let settings = {}
+if (process.env.NODE_ENV !== 'development') {
+  settings = require('../../public/settings.json')
+} else {
+  settings = require('../../settings_development.json')
+}
 
 const RPC_TIMEOUT = 10000
 
@@ -133,7 +138,7 @@ const store = new Vuex.Store({
   modules: {},
 })
 
-const socket = io(`http://:${settings.port}`, {
+const socket = io(`http://${process.env.NODE_ENV === 'development' ? settings.ip : ''}:${settings.port}`, {
   path: settings.path,
   transports: ['websocket'],
 })
