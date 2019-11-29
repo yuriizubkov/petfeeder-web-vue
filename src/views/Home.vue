@@ -7,7 +7,7 @@
           <canvas id="videoCanvas" ref="videoCanvas"></canvas>
           <v-card-actions class="d-flex justify-center">
             <v-btn
-              :disabled="rpcRequestInProgress || !connected"
+              :disabled="rpcRequestInProgress || !connected || receivingPhotoBuffer"
               :loading="videoBtnLoading"
               @click="videoPlaying ? stopVideo() : startVideo()"
             >
@@ -19,7 +19,7 @@
               @click="feed"
             >Feed me!</v-btn>
             <v-btn
-              :disabled="rpcRequestInProgress || !connected || videoPlaying"
+              :disabled="rpcRequestInProgress || !connected || videoPlaying || receivingPhotoBuffer"
               :loading="photoBtnLoading"
               @click="takePhoto"
             >
@@ -48,6 +48,7 @@ export default {
     videoBtnLoading: false,
     feedBtnLoading: false,
     photoBtnLoading: false,
+    receivingPhotoBuffer: false,
   }),
   computed: {
     ...mapState(['rpcRequestInProgress', 'connected']),
@@ -74,6 +75,7 @@ export default {
     },
     decodePicture: function(data) {
       if (!data) {
+        this.receivingPhotoBuffer = false
         const objUrl = 'data:image/jpeg;base64,' + btoa(String.fromCharCode.apply(null, this.photoBuffer))
         this.photoImage = new Image()
         this.photoImage.onload = () => this.drawBackImage()
@@ -173,6 +175,7 @@ export default {
         this.$store.socket.off('event/camera/picturedata', this.decodePicture)
         this.$store.socket.on('event/camera/picturedata', this.decodePicture)
         await this.$store.dispatch('takePicture')
+        this.receivingPhotoBuffer = true
       } catch (err) {
         console.error('takePhoto error:', err)
         this.$store.dispatch('showSnackbar', {
