@@ -108,6 +108,11 @@ const store = new Vuex.Store({
         event: 'rpc/camera/stopVideoStream',
       })
     },
+    takePicture(context) {
+      return context.dispatch('rpc', {
+        event: 'rpc/camera/takePicture',
+      })
+    },
     rpc(context, rpcConfig) {
       rpcConfig.args = rpcConfig.args || []
       return new Promise((resolve, reject) => {

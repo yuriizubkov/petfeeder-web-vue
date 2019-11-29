@@ -11,13 +11,18 @@
               :loading="videoBtnLoading"
               @click="videoPlaying ? stopVideo() : startVideo()"
             >
-              <v-icon left>{{ videoPlaying ? 'mdi-stop' : 'mdi-play' }}</v-icon
-              >video
+              <v-icon left>{{ videoPlaying ? 'mdi-stop' : 'mdi-play' }}</v-icon>video
             </v-btn>
-            <v-btn :disabled="rpcRequestInProgress || !connected" :loading="feedBtnLoading" @click="feed"
-              >Feed me!</v-btn
+            <v-btn
+              :disabled="rpcRequestInProgress || !connected"
+              :loading="feedBtnLoading"
+              @click="feed"
+            >Feed me!</v-btn>
+            <v-btn
+              :disabled="rpcRequestInProgress || !connected || videoPlaying"
+              :loading="photoBtnLoading"
+              @click="takePhoto"
             >
-            <v-btn :disabled="rpcRequestInProgress || !connected" @click="takePhoto">
               <v-icon left>mdi-camera</v-icon>Photo
             </v-btn>
           </v-card-actions>
@@ -36,10 +41,13 @@ export default {
   canvasCtx: null,
   player: null,
   backImage: null,
+  photoBuffer: null, // TODO: timeout needed if something will crash while we receiving jpeg buffer
+  photoImage: null,
   data: () => ({
     videoPlaying: false,
     videoBtnLoading: false,
     feedBtnLoading: false,
+    photoBtnLoading: false,
   }),
   computed: {
     ...mapState(['rpcRequestInProgress', 'connected']),
@@ -64,7 +72,30 @@ export default {
       concat.set(buffer, nalPrefix.length)
       this.player.decode(concat)
     },
+    decodePicture: function(data) {
+      if (!data) {
+        const objUrl = 'data:image/jpeg;base64,' + btoa(String.fromCharCode.apply(null, this.photoBuffer))
+        this.photoImage = new Image()
+        this.photoImage.onload = () => this.drawBackImage()
+        this.photoImage.onerror = err => console.error('Error decoding image:', err)
+        this.photoBuffer = null
+        this.photoImage.src = objUrl
+        return
+      }
+
+      const buffer = new Uint8Array(data)
+
+      if (!this.photoBuffer) {
+        this.photoBuffer = buffer
+      } else {
+        const concat = new Uint8Array(this.photoBuffer.length + buffer.length)
+        concat.set(this.photoBuffer)
+        concat.set(buffer, this.photoBuffer.length)
+        this.photoBuffer = concat
+      }
+    },
     onDecoded(buffer, width, height) {
+      if (!this.videoPlaying) return
       if (this.canvasCtx.busy) {
         console.info('Skipping frame')
         return // frame skipping if still drawing on 2d canvas
@@ -87,6 +118,7 @@ export default {
       this.canvasCtx.busy = false
     },
     async startVideo() {
+      this.photoImage = null
       try {
         this.videoBtnLoading = true
         this.$store.socket.on('event/camera/h264data', this.decodeVideo)
@@ -118,6 +150,7 @@ export default {
 
       this.videoPlaying = false
       this.videoBtnLoading = false
+      this.canvasCtx.clearRect(0, 0, this.canvasCtx.canvas.width, this.canvasCtx.canvas.height)
       this.drawBackImage()
     },
     async feed() {
@@ -134,11 +167,21 @@ export default {
 
       this.feedBtnLoading = false
     },
-    takePhoto() {
-      this.$store.dispatch('showSnackbar', {
-        text: 'Not implemented yet ;) stay tuned',
-        timeout: 10000,
-      })
+    async takePhoto() {
+      try {
+        this.photoBtnLoading = true
+        this.$store.socket.off('event/camera/picturedata', this.decodePicture)
+        this.$store.socket.on('event/camera/picturedata', this.decodePicture)
+        await this.$store.dispatch('takePicture')
+      } catch (err) {
+        console.error('takePhoto error:', err)
+        this.$store.dispatch('showSnackbar', {
+          text: err,
+          timeout: 10000,
+        })
+      }
+
+      this.photoBtnLoading = false
     },
     resizeCanvas() {
       const canvas = this.$refs.videoCanvas
@@ -148,13 +191,13 @@ export default {
       canvas.width = card.clientWidth
     },
     drawBackImage() {
-      this.canvasCtx.clearRect(0, 0, this.canvasCtx.canvas.width, this.canvasCtx.canvas.height)
+      const image = this.photoImage || this.backImage
       this.canvasCtx.drawImage(
-        this.backImage, // image
+        image, // image to draw
         0, // source image from Y
         0, // source image from X
-        this.backImage.width, // source image width
-        this.backImage.height, // source image height
+        image.width, // source image width
+        image.height, // source image height
         0, // destination Y
         0, // destination X
         this.canvasCtx.canvas.width, // destination width
