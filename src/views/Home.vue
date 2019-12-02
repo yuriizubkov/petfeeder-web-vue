@@ -11,13 +11,12 @@
               :loading="videoBtnLoading"
               @click="videoPlaying ? stopVideo() : startVideo()"
             >
-              <v-icon left>{{ videoPlaying ? 'mdi-stop' : 'mdi-play' }}</v-icon>video
+              <v-icon left>{{ videoPlaying ? 'mdi-stop' : 'mdi-play' }}</v-icon
+              >video
             </v-btn>
-            <v-btn
-              :disabled="rpcRequestInProgress || !connected"
-              :loading="feedBtnLoading"
-              @click="feed"
-            >Feed me!</v-btn>
+            <v-btn :disabled="rpcRequestInProgress || !connected" :loading="feedBtnLoading" @click="feed"
+              >Feed me!</v-btn
+            >
             <v-btn
               :disabled="rpcRequestInProgress || !connected || videoPlaying || receivingPhotoBuffer"
               :loading="photoBtnLoading"
@@ -36,6 +35,7 @@
 import { mapState, mapActions, mapMutations } from 'vuex'
 import backImageUrl from '../assets/camera_back.png'
 import Broadway from 'broadway-player'
+import { Base64 } from 'js-base64'
 
 export default {
   canvasCtx: null,
@@ -76,11 +76,18 @@ export default {
     decodePicture: function(data) {
       if (!data) {
         this.receivingPhotoBuffer = false
-        const objUrl = 'data:image/jpeg;base64,' + btoa(String.fromCharCode.apply(null, this.photoBuffer))
+        const objUrl = 'data:image/jpeg;base64,' + Base64.btoa(String.fromCharCode(...this.photoBuffer))
+        this.photoBuffer = null
         this.photoImage = new Image()
         this.photoImage.onload = () => this.drawBackImage()
-        this.photoImage.onerror = err => console.error('Error decoding image:', err)
-        this.photoBuffer = null
+        this.photoImage.onerror = err => {
+          console.error('Error decoding image:', err)
+          this.$store.dispatch('showSnackbar', {
+            text: 'Unable to decode image',
+            timeout: 10000,
+          })
+        }
+
         this.photoImage.src = objUrl
         return
       }
