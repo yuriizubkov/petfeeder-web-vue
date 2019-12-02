@@ -3,7 +3,7 @@
     <v-row align="center" justify="center">
       <v-col class="pa-0" cols="12" md="8">
         <v-card id="videCard" ref="videoCard">
-          <!-- Author of the background image: https://pixabay.com/vectors/dog-cat-animal-pet-cute-1517090/ -->
+          <!-- Author of the background image: https://pixabay.com/vectors/dog-cat-animal-pet-cute-1517090/ Thank you! -->
           <canvas id="videoCanvas" ref="videoCanvas"></canvas>
           <v-card-actions class="d-flex justify-center">
             <v-btn
