@@ -18,15 +18,7 @@ const store = new Vuex.Store({
     connected: false,
     connectionStateString: 'Connecting...',
     eventList: [],
-    eventDates: {
-      2019: {
-        11: {
-          26: 10,
-          27: 9,
-          28: 5,
-        },
-      },
-    },
+    allDbDates: {},
     schedule: [],
     rpcRequestInProgress: false,
     snackbar: {
@@ -57,6 +49,9 @@ const store = new Vuex.Store({
     setTitle(state, title) {
       state.title = title
     },
+    setAllDbDates(state, dates) {
+      state.allDbDates = dates
+    },
   },
   actions: {
     getSchedule(context) {
@@ -68,15 +63,25 @@ const store = new Vuex.Store({
           context.commit('setSchedule', schedule)
         }) // Returns Promise, so we can handle .catch in desired Vue component in order to show error message
     },
-    getEvents(context, dateUtc = new Date(Date.now())) {
+    getEvents(context, date) {
       return context
         .dispatch('rpc', {
           event: 'rpc/database/getEvents',
-          args: [dateUtc.getUTCFullYear(), dateUtc.getUTCMonth() + 1, dateUtc.getUTCDate()],
+          args: [date.year, date.month, date.date],
         })
         .then(events => {
           context.commit('setEvents', events)
           return events
+        })
+    },
+    getAllDbDates(context) {
+      return context
+        .dispatch('rpc', {
+          event: 'rpc/database/getAllDates',
+        })
+        .then(dates => {
+          context.commit('setAllDbDates', dates)
+          return dates
         })
     },
     setScheduleEntry(context, scheduleEntry) {

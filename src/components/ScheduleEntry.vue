@@ -1,7 +1,7 @@
 <template>
   <v-card :disabled="!connected" :loading="loading" class="mb-4">
-    <v-card-title>{{scheduleEntry.hours | formatHours}}:{{scheduleEntry.minutes | formatNumber}}</v-card-title>
-    <v-card-subtitle>Local time (GMT {{-timezoneOffset>=0 ? '+' : '-'}}{{-timezoneOffset}})</v-card-subtitle>
+    <v-card-title>{{ scheduleEntry.hours | formatHours }}:{{ scheduleEntry.minutes | formatNumber }}</v-card-title>
+    <v-card-subtitle>Local time (GMT {{ -timezoneOffset >= 0 ? '+' : '-' }}{{ -timezoneOffset }})</v-card-subtitle>
     <v-card-text class="pb-0 pt-0">
       <v-container class="pa-0">
         <v-row>
@@ -50,6 +50,8 @@
 
 <script>
 import { mapState, mapActions } from 'vuex'
+import { nf } from '../utilities/helpers'
+
 export default {
   props: {
     scheduleEntry: Object,
@@ -58,10 +60,10 @@ export default {
     loading: false,
     timezoneOffset: new Date().getTimezoneOffset() / 60, // getTimezoneOffset() in minutes, for example -60 / 60 = -1 in hours
     hours: Array.from(Array(24).keys()).map(val => {
-      return { text: ('0' + val).slice(-2), value: val } // 0 - 23
+      return { text: nf(val), value: val } // 0 - 23
     }),
     minutes: Array.from(Array(60).keys()).map(val => {
-      return { text: ('0' + val).slice(-2), value: val } // 0 - 59
+      return { text: nf(val), value: val } // 0 - 59
     }),
     portions: Array.from(Array(10).keys()).map(val => {
       return { text: val + 1, value: val + 1 } // 1 - 10
@@ -140,14 +142,12 @@ export default {
     },
   },
   filters: {
-    formatNumber: function(number) {
-      return ('0' + number).slice(-2)
-    },
+    formatNumber: nf,
     formatHours: function(h) {
       const timezoneOffset = new Date().getTimezoneOffset() / 60 // getTimezoneOffset() in minutes, for example -60 / 60 = -1 in hours
       let localHour = h - timezoneOffset
       localHour = localHour === 24 ? 0 : localHour
-      return ('0' + localHour).slice(-2)
+      return nf(localHour)
     },
   },
 }
