@@ -11,12 +11,13 @@
               :loading="videoBtnLoading"
               @click="videoPlaying ? stopVideo() : startVideo()"
             >
-              <v-icon left>{{ videoPlaying ? 'mdi-stop' : 'mdi-play' }}</v-icon
-              >video
+              <v-icon left>{{ videoPlaying ? 'mdi-stop' : 'mdi-play' }}</v-icon>video
             </v-btn>
-            <v-btn :disabled="rpcRequestInProgress || !connected" :loading="feedBtnLoading" @click="feed"
-              >Feed me!</v-btn
-            >
+            <v-btn
+              :disabled="rpcRequestInProgress || !connected"
+              :loading="feedBtnLoading"
+              @click="feed"
+            >Feed me!</v-btn>
             <v-btn
               :disabled="rpcRequestInProgress || !connected || videoPlaying || receivingPhotoBuffer"
               :loading="photoBtnLoading"
