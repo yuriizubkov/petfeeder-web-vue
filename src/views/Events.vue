@@ -33,13 +33,14 @@
             </v-list-item-avatar>
             <v-list-item-content>
               <v-list-item-title v-text="getFriendlyType(item)"></v-list-item-title>
-              <v-list-item-subtitle>
-                {{ getDateString(item) }} (GMT {{ -timezoneOffset >= 0 ? '+' : '-' }}{{ -timezoneOffset }})
-              </v-list-item-subtitle>
+              <v-list-item-subtitle>{{ getDateString(item) }} (GMT {{ -timezoneOffset >= 0 ? '+' : '-' }}{{ -timezoneOffset }})</v-list-item-subtitle>
             </v-list-item-content>
           </v-list-item>
         </v-list>
-        <div class="text-center" v-if="!loadingEvents && (!eventList || eventList.length === 0)">So quiet here...</div>
+        <div
+          class="text-center"
+          v-if="!loadingEvents && (!eventList || eventList.length === 0)"
+        >So quiet here...</div>
       </v-col>
     </v-row>
   </v-container>
@@ -64,16 +65,18 @@ export default {
   },
   watch: {
     dateSelected: async function() {
-      console.log(this.yearSelected, this.monthSelected, this.dateSelected)
       await this.getEvents(this.yearSelected, this.monthSelected, this.dateSelected)
     },
   },
   computed: {
     ...mapState(['eventList', 'allDbDates']),
     years() {
-      return Object.keys(this.allDbDates).map(key => {
-        return { text: key, value: parseInt(key) }
-      })
+      if (!this.allDbDates || Object.keys(this.allDbDates).length === 0)
+        return [{ text: this.yearSelected, value: this.yearSelected }]
+      else
+        return Object.keys(this.allDbDates).map(key => {
+          return { text: key, value: parseInt(key) }
+        })
     },
     months() {
       if (!this.allDbDates[this.yearSelected]) return [{ text: nf(this.monthSelected), value: this.monthSelected }]
