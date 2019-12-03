@@ -3,7 +3,7 @@
     <v-row align="center" justify="center">
       <v-col class="pl-1 pr-1 pt-0" cols="12" md="8">
         <v-card :disabled="loadingDbDates || loadingEvents" :loading="loadingDbDates">
-          <v-container class="pt-0 pb-0">
+          <v-container class="pb-0">
             <v-row>
               <v-col class="pb-0">
                 <v-select dense label="Year" :items="years" v-model="yearSelected" />
