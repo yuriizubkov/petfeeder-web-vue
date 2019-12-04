@@ -18,6 +18,14 @@
             <v-list-item-title>Schedule</v-list-item-title>
           </v-list-item-content>
         </v-list-item>
+        <v-list-item disabled link to="/gallery">
+          <v-list-item-action>
+            <v-icon>mdi-library-video</v-icon>
+          </v-list-item-action>
+          <v-list-item-content>
+            <v-list-item-title>Gallery</v-list-item-title>
+          </v-list-item-content>
+        </v-list-item>
         <v-list-item link to="/events">
           <v-list-item-action>
             <v-icon>mdi-timeline-alert</v-icon>
@@ -26,7 +34,7 @@
             <v-list-item-title>Events</v-list-item-title>
           </v-list-item-content>
         </v-list-item>
-        <v-list-item link to="/settings">
+        <v-list-item disabled link to="/settings">
           <v-list-item-action>
             <v-icon>mdi-settings</v-icon>
           </v-list-item-action>
