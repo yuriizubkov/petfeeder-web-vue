@@ -11,13 +11,12 @@
               :loading="videoBtnLoading"
               @click="videoPlaying ? stopVideo() : startVideo()"
             >
-              <v-icon left>{{ videoPlaying ? 'mdi-stop' : 'mdi-play' }}</v-icon>video
+              <v-icon left>{{ videoPlaying ? 'mdi-stop' : 'mdi-play' }}</v-icon
+              >video
             </v-btn>
-            <v-btn
-              :disabled="rpcRequestInProgress || !connected"
-              :loading="feedBtnLoading"
-              @click="feed"
-            >Feed me!</v-btn>
+            <v-btn :disabled="rpcRequestInProgress || !connected" :loading="feedBtnLoading" @click="feed"
+              >Feed me!</v-btn
+            >
             <v-btn
               :disabled="rpcRequestInProgress || !connected || videoPlaying || receivingPhotoBuffer"
               :loading="photoBtnLoading"
@@ -77,7 +76,22 @@ export default {
     decodePicture: function(data) {
       if (!data) {
         this.receivingPhotoBuffer = false
-        const objUrl = 'data:image/jpeg;base64,' + Base64.btoa(String.fromCharCode(...this.photoBuffer))
+        //const objUrl = 'data:image/jpeg;base64,' + Base64.btoa(String.fromCharCode(...this.photoBuffer)) // throws maximum call stack exceeded on IOS
+        let objUrl = ''
+        try {
+          objUrl =
+            'data:image/jpeg;base64,' +
+            Base64.btoa(this.photoBuffer.reduce((data, byte) => data + String.fromCharCode(byte), ''))
+        } catch (err) {
+          console.error('Error creating image URL:', err)
+          this.$store.dispatch('showSnackbar', {
+            text: 'Unable to create image URL',
+            timeout: 10000,
+          })
+          this.photoBuffer = null
+          return
+        }
+
         this.photoBuffer = null
         this.photoImage = new Image()
         this.photoImage.onload = () => this.drawBackImage()
