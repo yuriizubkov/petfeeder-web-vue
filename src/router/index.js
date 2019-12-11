@@ -29,6 +29,11 @@ const routes = [
     component: () => import(/* webpackChunkName: "events" */ '../views/Events.vue'),
   },
   {
+    path: '/gallery',
+    name: 'gallery',
+    component: () => import(/* webpackChunkName: "gallery" */ '../views/Gallery.vue'),
+  },
+  {
     path: '/settings',
     name: 'settings',
     component: () => import(/* webpackChunkName: "settings" */ '../views/Settings.vue'),

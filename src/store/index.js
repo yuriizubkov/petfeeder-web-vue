@@ -18,6 +18,7 @@ const store = new Vuex.Store({
     connected: false,
     connectionStateString: 'Connecting...',
     eventList: [],
+    galleryList: [],
     allDbDates: {},
     schedule: [],
     rpcRequestInProgress: false,
@@ -42,6 +43,9 @@ const store = new Vuex.Store({
     },
     setEvents(state, events) {
       state.eventList = events
+    },
+    setGallery(state, gallery) {
+      state.galleryList = gallery
     },
     setSnackbar(state, config) {
       state.snackbar = config
@@ -71,6 +75,17 @@ const store = new Vuex.Store({
         })
         .then(events => {
           context.commit('setEvents', events)
+          return events
+        })
+    },
+    getGallery(context, date) {
+      return context
+        .dispatch('rpc', {
+          event: 'rpc/database/getGallery',
+          args: [date.year, date.month, date.date],
+        })
+        .then(events => {
+          context.commit('setGallery', events)
           return events
         })
     },

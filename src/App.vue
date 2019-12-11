@@ -18,7 +18,7 @@
             <v-list-item-title>Schedule</v-list-item-title>
           </v-list-item-content>
         </v-list-item>
-        <v-list-item disabled link to="/gallery">
+        <v-list-item link to="/gallery">
           <v-list-item-action>
             <v-icon>mdi-library-video</v-icon>
           </v-list-item-action>
