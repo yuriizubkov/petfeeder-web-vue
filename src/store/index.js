@@ -19,7 +19,8 @@ const store = new Vuex.Store({
     connectionStateString: 'Connecting...',
     eventList: [],
     galleryList: [],
-    allDbDates: {},
+    galleryDates: {},
+    eventDates: {},
     schedule: [],
     rpcRequestInProgress: false,
     snackbar: {
@@ -53,8 +54,11 @@ const store = new Vuex.Store({
     setTitle(state, title) {
       state.title = title
     },
-    setAllDbDates(state, dates) {
-      state.allDbDates = dates
+    setGalleryDates(state, dates) {
+      state.galleryDates = dates
+    },
+    setEventDates(state, dates) {
+      state.eventDates = dates
     },
   },
   actions: {
@@ -89,13 +93,23 @@ const store = new Vuex.Store({
           return events
         })
     },
-    getAllDbDates(context) {
+    getGalleryDates(context) {
       return context
         .dispatch('rpc', {
-          event: 'rpc/database/getAllDates',
+          event: 'rpc/database/getGalleryDates',
         })
         .then(dates => {
-          context.commit('setAllDbDates', dates)
+          context.commit('setGalleryDates', dates)
+          return dates
+        })
+    },
+    getEventDates(context) {
+      return context
+        .dispatch('rpc', {
+          event: 'rpc/database/getEventDates',
+        })
+        .then(dates => {
+          context.commit('setEventDates', dates)
           return dates
         })
     },

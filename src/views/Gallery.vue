@@ -69,29 +69,29 @@ export default {
     },
   },
   computed: {
-    ...mapState(['galleryList', 'allDbDates']),
+    ...mapState(['galleryList', 'galleryDates']),
     years() {
-      if (!this.allDbDates || Object.keys(this.allDbDates).length === 0)
+      if (!this.galleryDates || Object.keys(this.galleryDates).length === 0)
         return [{ text: this.yearSelected, value: this.yearSelected }]
       else
-        return Object.keys(this.allDbDates).map(key => {
+        return Object.keys(this.galleryDates).map(key => {
           return { text: key, value: parseInt(key) }
         })
     },
     months() {
-      if (!this.allDbDates[this.yearSelected]) return [{ text: nf(this.monthSelected), value: this.monthSelected }]
+      if (!this.galleryDates[this.yearSelected]) return [{ text: nf(this.monthSelected), value: this.monthSelected }]
       else
-        return Object.keys(this.allDbDates[this.yearSelected]).map(key => {
+        return Object.keys(this.galleryDates[this.yearSelected]).map(key => {
           return { text: nf(key), value: parseInt(key) }
         })
     },
     dates() {
-      if (!this.allDbDates[this.yearSelected] || !this.allDbDates[this.yearSelected][this.monthSelected])
+      if (!this.galleryDates[this.yearSelected] || !this.galleryDates[this.yearSelected][this.monthSelected])
         return [{ text: nf(this.dateSelected), value: this.dateSelected }]
       else
-        return Object.keys(this.allDbDates[this.yearSelected][this.monthSelected]).map(key => {
+        return Object.keys(this.galleryDates[this.yearSelected][this.monthSelected]).map(key => {
           return {
-            text: `${nf(key)} (${this.allDbDates[this.yearSelected][this.monthSelected][key].gallery} videos)`,
+            text: `${nf(key)} (${this.galleryDates[this.yearSelected][this.monthSelected][key].gallery} videos)`,
             value: parseInt(key),
           }
         })
@@ -113,7 +113,6 @@ export default {
       try {
         this.$store.commit('setGallery', [])
         await this.$store.dispatch('getGallery', { year, month, date })
-        this.loadingGallery = false
       } catch (err) {
         console.error('getGallery error:', err)
         this.$store.dispatch('showSnackbar', {
@@ -124,14 +123,13 @@ export default {
 
       this.loadingGallery = false
     },
-    async getAllDbDates() {
+    async getGalleryDates() {
       this.loadingDbDates = true
 
       try {
-        await this.$store.dispatch('getAllDbDates')
+        await this.$store.dispatch('getGalleryDates')
       } catch (err) {
-        this.loadingGallery = false
-        console.error('getAllDbDates error:', err)
+        console.error('getGalleryDates error:', err)
         this.$store.dispatch('showSnackbar', {
           text: err,
           timeout: 10000,
@@ -144,9 +142,7 @@ export default {
   created: async function() {
     this.setTitle('Gallery')
     await this.getGallery(this.yearSelected, this.monthSelected, this.dateSelected)
-    // loading dates just once, and keep list in cashe (in store)
-    if (!this.allDbDates || Object.keys(this.allDbDates).length === 0) await this.getAllDbDates()
-    else this.loadingDbDates = false
+    await this.getGalleryDates()
   },
 }
 </script>

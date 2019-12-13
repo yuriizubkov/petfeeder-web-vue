@@ -69,29 +69,29 @@ export default {
     },
   },
   computed: {
-    ...mapState(['eventList', 'allDbDates']),
+    ...mapState(['eventList', 'eventDates']),
     years() {
-      if (!this.allDbDates || Object.keys(this.allDbDates).length === 0)
+      if (!this.eventDates || Object.keys(this.eventDates).length === 0)
         return [{ text: this.yearSelected, value: this.yearSelected }]
       else
-        return Object.keys(this.allDbDates).map(key => {
+        return Object.keys(this.eventDates).map(key => {
           return { text: key, value: parseInt(key) }
         })
     },
     months() {
-      if (!this.allDbDates[this.yearSelected]) return [{ text: nf(this.monthSelected), value: this.monthSelected }]
+      if (!this.eventDates[this.yearSelected]) return [{ text: nf(this.monthSelected), value: this.monthSelected }]
       else
-        return Object.keys(this.allDbDates[this.yearSelected]).map(key => {
+        return Object.keys(this.eventDates[this.yearSelected]).map(key => {
           return { text: nf(key), value: parseInt(key) }
         })
     },
     dates() {
-      if (!this.allDbDates[this.yearSelected] || !this.allDbDates[this.yearSelected][this.monthSelected])
+      if (!this.eventDates[this.yearSelected] || !this.eventDates[this.yearSelected][this.monthSelected])
         return [{ text: nf(this.dateSelected), value: this.dateSelected }]
       else
-        return Object.keys(this.allDbDates[this.yearSelected][this.monthSelected]).map(key => {
+        return Object.keys(this.eventDates[this.yearSelected][this.monthSelected]).map(key => {
           return {
-            text: `${nf(key)} (${this.allDbDates[this.yearSelected][this.monthSelected][key].events} events)`,
+            text: `${nf(key)} (${this.eventDates[this.yearSelected][this.monthSelected][key].events} events)`,
             value: parseInt(key),
           }
         })
@@ -157,7 +157,6 @@ export default {
       try {
         this.$store.commit('setEvents', [])
         await this.$store.dispatch('getEvents', { year, month, date })
-        this.loadingEvents = false
       } catch (err) {
         console.error('getEvents error:', err)
         this.$store.dispatch('showSnackbar', {
@@ -168,14 +167,13 @@ export default {
 
       this.loadingEvents = false
     },
-    async getAllDbDates() {
+    async getEventDates() {
       this.loadingDbDates = true
 
       try {
-        await this.$store.dispatch('getAllDbDates')
+        await this.$store.dispatch('getEventDates')
       } catch (err) {
-        this.loadingEvents = false
-        console.error('getAllDbDates error:', err)
+        console.error('getEventDates error:', err)
         this.$store.dispatch('showSnackbar', {
           text: err,
           timeout: 10000,
@@ -188,9 +186,7 @@ export default {
   created: async function() {
     this.setTitle('Events')
     await this.getEvents(this.yearSelected, this.monthSelected, this.dateSelected)
-    // loading dates just once, and keep list in cashe (in store)
-    if (!this.allDbDates || Object.keys(this.allDbDates).length === 0) await this.getAllDbDates()
-    else this.loadingDbDates = false
+    await this.getEventDates()
   },
 }
 </script>
