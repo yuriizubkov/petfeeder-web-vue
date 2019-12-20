@@ -32,7 +32,7 @@
               <v-icon>mdi-video-vintage</v-icon>
             </v-list-item-avatar>
             <v-list-item-content>
-              <v-list-item-title>{{item.fileName}}</v-list-item-title>
+              <v-list-item-title>{{item.id}}</v-list-item-title>
               <v-list-item-subtitle>{{ getDateString(item) }} (GMT {{ -timezoneOffset >= 0 ? '+' : '-' }}{{ -timezoneOffset }})</v-list-item-subtitle>
             </v-list-item-content>
           </v-list-item>
@@ -91,7 +91,7 @@ export default {
       else
         return Object.keys(this.galleryDates[this.yearSelected][this.monthSelected]).map(key => {
           return {
-            text: `${nf(key)} (${this.galleryDates[this.yearSelected][this.monthSelected][key].gallery} videos)`,
+            text: `${nf(key)} (${this.galleryDates[this.yearSelected][this.monthSelected][key]} videos)`,
             value: parseInt(key),
           }
         })
@@ -102,7 +102,7 @@ export default {
     ...mapMutations(['setGallery', 'setTitle']),
     ...mapActions(['showSnackbar']),
     getDateString(item) {
-      const date = new Date(item.timestamp)
+      const date = new Date(item.id)
       return `${date.getFullYear()}.${nf(date.getMonth() + 1)}.${nf(date.getDate())} ${nf(date.getHours())}:${nf(
         date.getMinutes()
       )}:${nf(date.getSeconds())}`

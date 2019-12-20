@@ -32,7 +32,7 @@
               <v-icon v-text="getIconClass(item)"></v-icon>
             </v-list-item-avatar>
             <v-list-item-content>
-              <v-list-item-title v-text="getFriendlyType(item)"></v-list-item-title>
+              <v-list-item-title>{{ index + 1 }}. {{ getFriendlyType(item) }}</v-list-item-title>
               <v-list-item-subtitle>{{ getDateString(item) }} (GMT {{ -timezoneOffset >= 0 ? '+' : '-' }}{{ -timezoneOffset }})</v-list-item-subtitle>
             </v-list-item-content>
           </v-list-item>
@@ -91,7 +91,7 @@ export default {
       else
         return Object.keys(this.eventDates[this.yearSelected][this.monthSelected]).map(key => {
           return {
-            text: `${nf(key)} (${this.eventDates[this.yearSelected][this.monthSelected][key].events} events)`,
+            text: `${nf(key)} (${this.eventDates[this.yearSelected][this.monthSelected][key]} events)`,
             value: parseInt(key),
           }
         })
@@ -146,7 +146,7 @@ export default {
       return friendlyType
     },
     getDateString(item) {
-      const date = new Date(item.timestamp)
+      const date = new Date(item.id)
       return `${date.getFullYear()}.${nf(date.getMonth() + 1)}.${nf(date.getDate())} ${nf(date.getHours())}:${nf(
         date.getMinutes()
       )}:${nf(date.getSeconds())}`
