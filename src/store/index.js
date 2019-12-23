@@ -146,8 +146,8 @@ const store = new Vuex.Store({
     rpc(context, request) {
       return new Promise((resolve, reject) => {
         request.args = request.args || []
-        const requestId = Date.now() // timestamp
-        request.id = requestId
+        const requestId = Date.now() // timestamp + random number (rpc calls could be at the same time)
+        request.id = requestId + Math.random()
 
         // RPC response handler
         const onResponse = response => {
