@@ -7,18 +7,15 @@
           <canvas id="videoCanvas" ref="videoCanvas"></canvas>
           <v-card-actions class="d-flex justify-center">
             <v-btn
-              :disabled="rpcRequestInProgress || !connected || receivingPhotoBuffer"
+              :disabled="!connected || receivingPhotoBuffer"
               :loading="videoBtnLoading"
               @click="videoPlaying ? stopVideo() : startVideo()"
             >
-              <v-icon left>{{ videoPlaying ? 'mdi-stop' : 'mdi-play' }}</v-icon
-              >video
+              <v-icon left>{{ videoPlaying ? 'mdi-stop' : 'mdi-play' }}</v-icon>video
             </v-btn>
-            <v-btn :disabled="rpcRequestInProgress || !connected" :loading="feedBtnLoading" @click="feed"
-              >Feed me!</v-btn
-            >
+            <v-btn :disabled="!connected" :loading="feedBtnLoading" @click="feed">Feed me!</v-btn>
             <v-btn
-              :disabled="rpcRequestInProgress || !connected || videoPlaying || receivingPhotoBuffer"
+              :disabled="!connected || videoPlaying || receivingPhotoBuffer"
               :loading="photoBtnLoading"
               @click="takePhoto"
             >
@@ -51,7 +48,7 @@ export default {
     receivingPhotoBuffer: false,
   }),
   computed: {
-    ...mapState(['rpcRequestInProgress', 'connected']),
+    ...mapState(['connected']),
   },
   watch: {
     connected: function(newVal) {
@@ -64,7 +61,7 @@ export default {
   methods: {
     ...mapMutations(['setTitle']),
     ...mapActions(['showSnackbar']),
-    decodeVideo: function(data) {
+    decodeVideo(data) {
       if (!this.videoPlaying) return
       const nalPrefix = new Uint8Array([0, 0, 0, 1]) // Adding NAL Unit header
       const buffer = new Uint8Array(data)
@@ -73,7 +70,7 @@ export default {
       concat.set(buffer, nalPrefix.length)
       this.player.decode(concat)
     },
-    decodePicture: function(data) {
+    decodePicture(data) {
       if (!data) {
         this.receivingPhotoBuffer = false
         //const objUrl = 'data:image/jpeg;base64,' + Base64.btoa(String.fromCharCode(...this.photoBuffer)) // throws maximum call stack exceeded on IOS

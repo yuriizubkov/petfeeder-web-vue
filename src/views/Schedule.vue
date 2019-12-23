@@ -31,21 +31,24 @@ export default {
   methods: {
     ...mapMutations(['setTitle']),
     ...mapActions(['showSnackbar']),
-  },
-  created: async function() {
-    this.setTitle('Schedule')
-    try {
-      this.$store.commit('setSchedule', [])
-      await this.$store.dispatch('getSchedule')
-    } catch (err) {
-      console.error('getSchedule error:', err)
-      this.$store.dispatch('showSnackbar', {
-        text: err,
-        timeout: 10000,
-      })
-    }
+    async getSchedule() {
+      try {
+        this.$store.commit('setSchedule', [])
+        await this.$store.dispatch('getSchedule')
+      } catch (err) {
+        console.error('getSchedule error:', err)
+        this.$store.dispatch('showSnackbar', {
+          text: err,
+          timeout: 10000,
+        })
+      }
 
-    this.loading = false
+      this.loading = false
+    },
+  },
+  created: function() {
+    this.setTitle('Schedule')
+    this.getSchedule()
   },
 }
 </script>

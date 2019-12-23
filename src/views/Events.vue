@@ -185,8 +185,8 @@ export default {
   },
   created: async function() {
     this.setTitle('Events')
-    await this.getEvents(this.yearSelected, this.monthSelected, this.dateSelected)
-    await this.getEventDates()
+    this.getEvents(this.yearSelected, this.monthSelected, this.dateSelected)
+    this.getEventDates()
   },
 }
 </script>

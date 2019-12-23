@@ -8,7 +8,7 @@ if (process.env.NODE_ENV !== 'development') {
   settings = require('../../settings_development.json')
 }
 
-const RPC_TIMEOUT = 10000
+const RPC_TIMEOUT_MS = 10000
 
 Vue.use(Vuex)
 
@@ -22,7 +22,6 @@ const store = new Vuex.Store({
     galleryDates: {},
     eventDates: {},
     schedule: [],
-    rpcRequestInProgress: false,
     snackbar: {
       snackbar: false,
       text: '',
@@ -35,9 +34,6 @@ const store = new Vuex.Store({
     },
     setConnectionStateStr(state, str) {
       state.connectionStateString = str
-    },
-    rpcRequestInProgress(state, isInProgress) {
-      state.rpcRequestInProgress = isInProgress
     },
     setSchedule(state, schedule) {
       state.schedule = schedule
@@ -65,7 +61,7 @@ const store = new Vuex.Store({
     getSchedule(context) {
       return context
         .dispatch('rpc', {
-          event: 'rpc/device/getSchedule',
+          method: 'device/getSchedule',
         })
         .then(schedule => {
           context.commit('setSchedule', schedule)
@@ -74,7 +70,7 @@ const store = new Vuex.Store({
     getEvents(context, date) {
       return context
         .dispatch('rpc', {
-          event: 'rpc/database/getEvents',
+          method: 'database/getEvents',
           args: [date.year, date.month, date.date],
         })
         .then(events => {
@@ -85,7 +81,7 @@ const store = new Vuex.Store({
     getGallery(context, date) {
       return context
         .dispatch('rpc', {
-          event: 'rpc/database/getGallery',
+          method: 'database/getGallery',
           args: [date.year, date.month, date.date],
         })
         .then(events => {
@@ -96,7 +92,7 @@ const store = new Vuex.Store({
     getGalleryDates(context) {
       return context
         .dispatch('rpc', {
-          event: 'rpc/database/getGalleryDates',
+          method: 'database/getGalleryDates',
         })
         .then(dates => {
           context.commit('setGalleryDates', dates)
@@ -106,7 +102,7 @@ const store = new Vuex.Store({
     getEventDates(context) {
       return context
         .dispatch('rpc', {
-          event: 'rpc/database/getEventDates',
+          method: 'database/getEventDates',
         })
         .then(dates => {
           context.commit('setEventDates', dates)
@@ -115,7 +111,7 @@ const store = new Vuex.Store({
     },
     setScheduleEntry(context, scheduleEntry) {
       return context.dispatch('rpc', {
-        event: 'rpc/device/setScheduleEntry',
+        method: 'device/setScheduleEntry',
         args: [
           // we need to pass this arguments in particular order (see petwant-device setScheduleEntry method)
           scheduleEntry.hours,
@@ -129,48 +125,53 @@ const store = new Vuex.Store({
     },
     feedManually(context) {
       return context.dispatch('rpc', {
-        event: 'rpc/device/feedManually',
+        method: 'device/feedManually',
       })
     },
     startVideo(context) {
       return context.dispatch('rpc', {
-        event: 'rpc/camera/startVideoStream',
+        method: 'camera/startVideoStream',
       })
     },
     stopVideo(context) {
       return context.dispatch('rpc', {
-        event: 'rpc/camera/stopVideoStream',
+        method: 'camera/stopVideoStream',
       })
     },
     takePicture(context) {
       return context.dispatch('rpc', {
-        event: 'rpc/camera/takePicture',
+        method: 'camera/takePicture',
       })
     },
-    rpc(context, rpcConfig) {
-      rpcConfig.args = rpcConfig.args || []
+    rpc(context, request) {
       return new Promise((resolve, reject) => {
+        request.args = request.args || []
+        const requestId = Date.now() // timestamp
+        request.id = requestId
+
+        // RPC response handler
+        const onResponse = response => {
+          if (response.id !== requestId) return
+          clearTimeout(timeout)
+          console.info(`RPC "${request.method}" response:`, response)
+          socket.off('response', onResponse)
+          if (!response) return
+          if (response.error) reject(response.error)
+          else resolve(response.data)
+        }
+
+        // RPC timeout
         const timeout = setTimeout(() => {
-          // unsubscribing of whatever/rpc/call/response
-          console.error(`RPC "${rpcConfig.event}" timeout`)
-          socket.off(rpcConfig.event + '/response')
-          context.commit('rpcRequestInProgress', false)
+          socket.off('response', onResponse)
+          console.error('RPC timeout', request)
           reject('Remote procedure call timeout')
-        }, RPC_TIMEOUT)
+        }, RPC_TIMEOUT_MS)
 
-        // subscribing to "whatever/rpc/call/response"
-        socket.once(rpcConfig.event + '/response', response => {
-          clearTimeout(timeout) // clearing timeout first
-          context.commit('rpcRequestInProgress', false)
-          console.info(`RPC "${rpcConfig.event}" response:`, response)
-          if (response && response.error) return reject(response.error)
-          resolve(response)
-        })
+        socket.on('response', onResponse)
 
-        context.commit('rpcRequestInProgress', true)
         // sending RPC request
-        console.info(`RPC "${rpcConfig.event}" request:`, ...rpcConfig.args)
-        socket.emit(rpcConfig.event, ...rpcConfig.args) // passing args in arguments
+        console.info(`RPC "${request.method}" request:`, request)
+        socket.emit('request', request) // rpc request
       })
     },
     showSnackbar(context, message) {
@@ -203,61 +204,60 @@ socket.on('connect', () => {
 
 socket.on('disconnect', () => {
   store.commit('setConnectionState', false)
-  store.commit('rpcRequestInProgress', false)
   store.commit('setConnectionStateStr', 'Disconnected')
   console.info('Connection state:', 'Disconnected')
 })
 
 socket.on('reconnecting', n => {
   store.commit('setConnectionState', false)
-  store.commit('rpcRequestInProgress', false)
   store.commit('setConnectionStateStr', `Trying to reconnect (${n})`)
   console.info('Connection state:', 'Reconnecting...', n)
 })
 
 socket.on('reconnect_failed', () => {
   store.commit('setConnectionState', false)
-  store.commit('rpcRequestInProgress', false)
   store.commit('setConnectionStateStr', `Reconnection failed`)
   console.error('Connection state:', 'Reconnection failed')
 })
 
 socket.on('connect_error', err => {
   store.commit('setConnectionState', false)
-  store.commit('rpcRequestInProgress', false)
   store.commit('setConnectionStateStr', `Connection error: ${err.message}`)
   console.error('Connection error:', err)
 })
 
-/* Global events */
-socket.on('event/device/feedingstarted', data => {
-  console.info('Event "event/device/feedingstarted"', data)
-  store.dispatch('showSnackbar', {
-    text: 'Feeding has started',
-    timeout: 3000,
-  })
-})
+/* Notifications */
+socket.on('notification', notification => {
+  if (!notification) return
 
-socket.on('event/device/warningnofood', () => {
-  console.warn('Event "event/device/warningnofood"')
-  store.dispatch('showSnackbar', {
-    text: 'No food left. Please add more!',
-    timeout: 10000,
-  })
-})
-
-socket.on('event/device/feedingcomplete', data => {
-  console.info('Event "event/device/feedingcomplete"', data)
-  store.dispatch('showSnackbar', {
-    text: `Feeding complete, portions issued: ${data}`,
-  })
-})
-
-socket.on('event/device/clocksynchronized', () => {
-  console.info('Event "event/device/clocksynchronized"')
-  store.dispatch('showSnackbar', {
-    text: 'Device clock has been synchronized',
-  })
+  switch (notification.e) {
+    case 'device/feedingstarted':
+      console.info('Notification received:', notification)
+      store.dispatch('showSnackbar', {
+        text: 'Feeding has started',
+        timeout: 3000,
+      })
+      break
+    case 'device/warningnofood':
+      console.info('Notification received:', notification)
+      store.dispatch('showSnackbar', {
+        text: 'No food left. Please add more!',
+        timeout: 10000,
+      })
+      break
+    case 'device/feedingcomplete':
+      console.info('Notification received:', notification)
+      store.dispatch('showSnackbar', {
+        text: `Feeding complete, portions issued: ${notification.d}`,
+      })
+      break
+    case 'device/clocksynchronized':
+      console.info('Notification received:', notification)
+      store.dispatch('showSnackbar', {
+        text: 'Device clock has been synchronized',
+      })
+      break
+  }
 })
 
 store.socket = socket

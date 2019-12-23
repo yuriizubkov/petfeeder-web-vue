@@ -139,10 +139,10 @@ export default {
       this.loadingDbDates = false
     },
   },
-  created: async function() {
+  created: function() {
     this.setTitle('Gallery')
-    await this.getGallery(this.yearSelected, this.monthSelected, this.dateSelected)
-    await this.getGalleryDates()
+    this.getGallery(this.yearSelected, this.monthSelected, this.dateSelected)
+    this.getGalleryDates()
   },
 }
 </script>
