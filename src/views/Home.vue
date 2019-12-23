@@ -61,17 +61,20 @@ export default {
   methods: {
     ...mapMutations(['setTitle']),
     ...mapActions(['showSnackbar']),
-    decodeVideo(data) {
+    decodeVideo(event) {
+      if (event.e !== 'camera/h264data') return
       if (!this.videoPlaying) return
       const nalPrefix = new Uint8Array([0, 0, 0, 1]) // Adding NAL Unit header
-      const buffer = new Uint8Array(data)
+      const buffer = new Uint8Array(event.d)
       const concat = new Uint8Array(nalPrefix.length + buffer.length)
       concat.set(nalPrefix)
       concat.set(buffer, nalPrefix.length)
       this.player.decode(concat)
     },
-    decodePicture(data) {
-      if (!data) {
+    decodePicture(event) {
+      if (event.e !== 'camera/picturedata') return
+
+      if (!event.d) {
         this.receivingPhotoBuffer = false
         //const objUrl = 'data:image/jpeg;base64,' + Base64.btoa(String.fromCharCode(...this.photoBuffer)) // throws maximum call stack exceeded on IOS
         let objUrl = ''
@@ -104,7 +107,7 @@ export default {
         return
       }
 
-      const buffer = new Uint8Array(data)
+      const buffer = new Uint8Array(event.d)
 
       if (!this.photoBuffer) {
         this.photoBuffer = buffer
@@ -142,12 +145,13 @@ export default {
       this.photoImage = null
       try {
         this.videoBtnLoading = true
-        this.$store.socket.on('event/camera/h264data', this.decodeVideo)
+        this.$store.socket.off('notification', this.decodeVideo)
+        this.$store.socket.on('notification', this.decodeVideo)
         await this.$store.dispatch('startVideo')
         this.videoPlaying = true
       } catch (err) {
         console.error('startVideo error:', err)
-        this.$store.socket.off('event/camera/h264data', this.decodeVideo)
+        this.$store.socket.off('notification', this.decodeVideo)
         this.$store.dispatch('showSnackbar', {
           text: err,
           timeout: 10000,
@@ -159,7 +163,7 @@ export default {
     async stopVideo() {
       try {
         this.videoBtnLoading = true
-        this.$store.socket.off('event/camera/h264data', this.decodeVideo)
+        this.$store.socket.off('notification', this.decodeVideo)
         await this.$store.dispatch('stopVideo')
       } catch (err) {
         console.error('stopVideo error:', err)
@@ -191,12 +195,13 @@ export default {
     async takePhoto() {
       try {
         this.photoBtnLoading = true
-        this.$store.socket.off('event/camera/picturedata', this.decodePicture)
-        this.$store.socket.on('event/camera/picturedata', this.decodePicture)
+        this.$store.socket.off('notification', this.decodePicture)
+        this.$store.socket.on('notification', this.decodePicture)
         await this.$store.dispatch('takePicture')
         this.receivingPhotoBuffer = true
       } catch (err) {
         console.error('takePhoto error:', err)
+        this.$store.socket.off('notification', this.decodePicture)
         this.$store.dispatch('showSnackbar', {
           text: err,
           timeout: 10000,
@@ -261,6 +266,8 @@ export default {
   beforeDestroy() {
     window.removeEventListener('resize', this.onWindowResize)
     this.videoPlaying && this.stopVideo()
+    this.$store.socket.off('notification', this.decodeVideo)
+    this.$store.socket.off('notification', this.decodePicture)
   },
 }
 </script>
