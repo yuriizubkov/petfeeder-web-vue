@@ -80,5 +80,8 @@ export default {
     // if state "thumbnails ready"
     if (this.galleryEntry.state === 2) this.getThumbnails(this.galleryEntry.id)
   },
+  beforeDestroy() {
+    if (this.interval) clearInterval(this.interval)
+  },
 }
 </script>
