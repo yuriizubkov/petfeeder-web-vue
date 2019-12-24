@@ -99,6 +99,12 @@ const store = new Vuex.Store({
           return dates
         })
     },
+    getThumbs(context, entryId) {
+      return context.dispatch('rpc', {
+        method: 'database/getVideoThumbs',
+        args: [entryId],
+      })
+    },
     getEventDates(context) {
       return context
         .dispatch('rpc', {
@@ -153,7 +159,7 @@ const store = new Vuex.Store({
         const onResponse = response => {
           if (response.id !== requestId) return
           clearTimeout(timeout)
-          console.info(`RPC "${request.method}" response:`, response)
+          console.info(`RPC response <-:`, response)
           socket.off('response', onResponse)
           if (!response) return
           if (response.error) reject(response.error)
@@ -170,7 +176,7 @@ const store = new Vuex.Store({
         socket.on('response', onResponse)
 
         // sending RPC request
-        console.info(`RPC "${request.method}" request:`, request)
+        console.info(`RPC request ->:`, request)
         socket.emit('request', request) // rpc request
       })
     },

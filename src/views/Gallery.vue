@@ -26,17 +26,11 @@
     </v-row>
     <v-row v-else align="center" justify="center">
       <v-col class="pl-1 pr-1 pt-0" cols="12" md="8">
-        <v-list dense v-if="galleryList && galleryList.length > 0" subheader>
-          <v-list-item class="pl-1" v-for="(item, index) in galleryList" :key="index">
-            <v-list-item-avatar class="pa-0 mr-0">
-              <v-icon>mdi-video-vintage</v-icon>
-            </v-list-item-avatar>
-            <v-list-item-content>
-              <v-list-item-title>{{item.id}}</v-list-item-title>
-              <v-list-item-subtitle>{{ getDateString(item) }} (GMT {{ -timezoneOffset >= 0 ? '+' : '-' }}{{ -timezoneOffset }})</v-list-item-subtitle>
-            </v-list-item-content>
-          </v-list-item>
-        </v-list>
+        <v-container fluid class="pt-0" v-if="galleryList && galleryList.length > 0">
+          <v-flex class="flex-direction: row">
+            <GalleryEntry :galleryEntry="item" v-for="(item, index) in galleryList" :key="index" />
+          </v-flex>
+        </v-container>
         <div
           class="text-center"
           v-if="!loadingGallery && (!galleryList || galleryList.length === 0)"
@@ -49,8 +43,12 @@
 <script>
 import { mapState, mapActions, mapMutations } from 'vuex'
 import { nf } from '../utilities/helpers'
+import GalleryEntry from '../components/GalleryEntry'
 
 export default {
+  components: {
+    GalleryEntry,
+  },
   data: () => {
     const currentDate = new Date()
     return {
@@ -58,7 +56,6 @@ export default {
       yearSelected: currentDate.getUTCFullYear(),
       monthSelected: currentDate.getUTCMonth() + 1,
       dateSelected: currentDate.getUTCDate(),
-      timezoneOffset: new Date().getTimezoneOffset() / 60,
       loadingGallery: true,
       loadingDbDates: true,
     }
@@ -101,12 +98,6 @@ export default {
     nf,
     ...mapMutations(['setGallery', 'setTitle']),
     ...mapActions(['showSnackbar']),
-    getDateString(item) {
-      const date = new Date(item.id)
-      return `${date.getFullYear()}.${nf(date.getMonth() + 1)}.${nf(date.getDate())} ${nf(date.getHours())}:${nf(
-        date.getMinutes()
-      )}:${nf(date.getSeconds())}`
-    },
     async getGallery(year, month, date) {
       this.loadingGallery = true
 
