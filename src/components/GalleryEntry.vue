@@ -82,6 +82,7 @@ export default {
   },
   beforeDestroy() {
     if (this.interval) clearInterval(this.interval)
+    if (this.images.length !== 0) this.images.forEach(url => URL.revokeObjectURL(url))
   },
 }
 </script>
