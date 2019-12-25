@@ -149,6 +149,12 @@ const store = new Vuex.Store({
         method: 'camera/takePicture',
       })
     },
+    getVideoFile(context, fileId) {
+      return context.dispatch('rpc', {
+        method: 'files/getVideoFile',
+        args: [fileId],
+      })
+    },
     rpc(context, request) {
       return new Promise((resolve, reject) => {
         request.args = request.args || []
