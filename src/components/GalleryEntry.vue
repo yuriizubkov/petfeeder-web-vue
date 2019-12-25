@@ -1,5 +1,5 @@
 <template>
-  <v-card class="ma-0 mr-2 mb-2" max-width="160">
+  <v-card class="ma-0 mr-2 mb-2 text-center" max-width="160">
     <v-list-item>
       <v-list-item-content>
         <v-list-item-title
@@ -9,14 +9,15 @@
     </v-list-item>
 
     <img v-if="activeImage !== null" :src="activeImage" />
-    <v-card-text v-else>File is not ready yet...</v-card-text>
+    <v-progress-circular v-if="loading" indeterminate></v-progress-circular>
+    <v-card-text v-if="galleryEntry.state !== 2">Thumbnails are not ready yet...</v-card-text>
 
     <v-card-actions>
       <v-spacer></v-spacer>
-      <v-btn icon>
+      <v-btn :disabled="galleryEntry.state < 1" icon>
         <v-icon>mdi-download</v-icon>
       </v-btn>
-      <v-btn icon>
+      <v-btn :disabled="galleryEntry.state !== 2" icon>
         <v-icon>mdi-delete</v-icon>
       </v-btn>
     </v-card-actions>
@@ -32,6 +33,7 @@ export default {
     galleryEntry: Object,
   },
   data: () => ({
+    loading: false,
     thumbs: [],
     images: [],
     activeImage: null,
@@ -65,6 +67,8 @@ export default {
       return `${nf(date.getHours())}:${nf(date.getMinutes())}:${nf(date.getSeconds())}`
     },
     async getThumbnails(fileId) {
+      this.loading = true
+
       try {
         this.thumbs = await this.getThumbs(fileId)
       } catch (err) {
@@ -74,6 +78,8 @@ export default {
           timeout: 10000,
         })
       }
+
+      this.loading = false
     },
   },
   created: function() {

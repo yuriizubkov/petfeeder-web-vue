@@ -27,7 +27,7 @@
     <v-row v-else align="center" justify="center">
       <v-col class="pl-1 pr-1 pt-0" cols="12" md="8">
         <v-container fluid class="pt-0" v-if="galleryList && galleryList.length > 0">
-          <v-flex class="flex-direction: row">
+          <v-flex class="flex-direction: row justify-center">
             <GalleryEntry :galleryEntry="item" v-for="(item, index) in galleryList" :key="index" />
           </v-flex>
         </v-container>
