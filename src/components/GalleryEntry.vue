@@ -128,6 +128,10 @@ export default {
           `${nf(fileDate.getUTCSeconds())}.mp4`
         a.click()
 
+        setTimeout(() => {
+          URL.revokeObjectURL(url) // destroy object url
+        }, 1000)
+
         return
       }
 
@@ -166,7 +170,7 @@ export default {
   },
   beforeDestroy() {
     if (this.interval) clearInterval(this.interval)
-    if (this.images.length !== 0) this.images.forEach(url => URL.revokeObjectURL(url))
+    if (this.images.length !== 0) this.images.forEach(url => URL.revokeObjectURL(url)) // destroying thumbs
     this.$store.socket.off('notification', this.onFileData)
   },
 }
