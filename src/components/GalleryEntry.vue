@@ -26,7 +26,7 @@
       </v-progress-linear>
       <v-spacer></v-spacer>
       <v-btn
-        v-if="iOS"
+        v-if="!iOS"
         @click="downloadFile"
         :disabled="galleryEntry.state < 1 || downloadingFile"
         :loading="downloadingFile"
@@ -51,7 +51,7 @@ export default {
     galleryEntry: Object,
   },
   data: () => ({
-    iOS = !!navigator.platform && /iPad|iPhone|iPod/.test(navigator.platform), // download does not work on ios anyhow
+    iOS: !!navigator.platform && /iPad|iPhone|iPod/.test(navigator.platform), // download does not work on ios anyhow
     loadingThumbs: false,
     downloadingFile: false,
     fileSize: 0,
