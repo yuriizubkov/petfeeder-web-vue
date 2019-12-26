@@ -1,5 +1,5 @@
 <template>
-  <v-card class="ma-0 mr-2 mb-2 text-center" max-width="160">
+  <v-card v-if="show" class="ma-0 mr-2 mb-2 text-center" max-width="160">
     <v-list-item>
       <v-list-item-content>
         <v-list-item-title
@@ -28,15 +28,38 @@
       <v-btn
         v-if="!iOS"
         @click="downloadFile"
-        :disabled="galleryEntry.state < 1 || downloadingFile"
+        :disabled="galleryEntry.state < 1 || downloadingFile || removingFile"
         :loading="downloadingFile"
         icon
       >
         <v-icon>mdi-download</v-icon>
       </v-btn>
-      <v-btn :disabled="galleryEntry.state !== 2 || downloadingFile" icon>
-        <v-icon>mdi-delete</v-icon>
-      </v-btn>
+      <v-dialog v-model="dialog" width="250">
+        <template v-slot:activator="{ on }">
+          <v-btn
+            @click="dialog = true"
+            :disabled="galleryEntry.state !== 2 || downloadingFile || removingFile"
+            :loading="removingFile"
+            icon
+          >
+            <v-icon>mdi-delete</v-icon>
+          </v-btn>
+        </template>
+        <v-card>
+          <v-card-title primary-title>Please confirm</v-card-title>
+          <v-card-text>
+            Do you want to delete this file?
+            <br />
+            {{ getDateString(galleryEntry) }} (GMT {{ -timezoneOffset >= 0 ? '+' : '-' }}{{ -timezoneOffset }})
+          </v-card-text>
+          <v-divider></v-divider>
+          <v-card-actions>
+            <v-spacer></v-spacer>
+            <v-btn @click="dialog = false">Cancel</v-btn>
+            <v-btn color="primary" @click="removeFile">Delete</v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
     </v-card-actions>
   </v-card>
 </template>
@@ -51,15 +74,18 @@ export default {
     galleryEntry: Object,
   },
   data: () => ({
+    dialog: false,
     iOS: !!navigator.platform && /iPad|iPhone|iPod/.test(navigator.platform), // download does not work on ios anyhow
     loadingThumbs: false,
     downloadingFile: false,
+    removingFile: false,
     fileSize: 0,
     bytesDownloaded: 0,
     thumbs: [],
     images: [],
     activeImage: null,
     timezoneOffset: new Date().getTimezoneOffset() / 60,
+    show: true,
   }),
   computed: {
     downloadProgress: function() {
@@ -88,7 +114,7 @@ export default {
     },
   },
   methods: {
-    ...mapActions(['getThumbs', 'showSnackbar', 'getVideoFile']),
+    ...mapActions(['getThumbs', 'showSnackbar', 'getVideoFile', 'removeGalleryEntry']),
     getDateString(item) {
       const date = new Date(item.id)
       return `${nf(date.getHours())}:${nf(date.getMinutes())}:${nf(date.getSeconds())}`
@@ -158,12 +184,30 @@ export default {
         this.fileSize = await this.getVideoFile(this.galleryEntry.id)
         this.$store.socket.on('notification', this.onFileData)
       } catch (err) {
+        this.downloadingFile = false
         console.error('downloadFile error:', err)
         this.showSnackbar({
           text: err,
           timeout: 10000,
         })
       }
+    },
+    async removeFile() {
+      this.dialog = false
+      this.removingFile = true
+
+      try {
+        await this.removeGalleryEntry(this.galleryEntry.id)
+        this.show = false
+      } catch (err) {
+        console.error('removeFile error:', err)
+        this.showSnackbar({
+          text: err,
+          timeout: 10000,
+        })
+      }
+
+      this.removingFile = false
     },
   },
   created: function() {

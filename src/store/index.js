@@ -155,6 +155,12 @@ const store = new Vuex.Store({
         args: [fileId],
       })
     },
+    removeGalleryEntry(context, entryId) {
+      return context.dispatch('rpc', {
+        method: 'database/removeGalleryEntry',
+        args: [entryId],
+      })
+    },
     rpc(context, request) {
       return new Promise((resolve, reject) => {
         request.args = request.args || []
