@@ -6,7 +6,7 @@ Please check this links for more information:
 
 https://github.com/yuriizubkov/petwant-device - npm module for communication with _Petwant PF-103_ microcontroller board. <br/>
 https://github.com/yuriizubkov/petwant-device/wiki - useful information about modifying your _Petwant PF-103_.<br/>
-(link to server software goes here, documentation in progress) - pet feeder server software.
+https://github.com/yuriizubkov/petfeeder-backend - pet feeder server software.
 
 Usually you don't need to install this app manually. Server software comes with this UI application preinstalled.
 
