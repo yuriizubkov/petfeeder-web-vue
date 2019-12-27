@@ -12,7 +12,7 @@ Usually you don't need to install this app manually. Server software comes with 
 
 ## Disclaimer
 
-There is no security measures whatsoever (no traffic encryption, authentication and authorization), use it on your own risk.
+Here is no security measures whatsoever (no traffic encryption, authentication and authorization), use it on your own risk.
 _Consider this version 1.0.0 as proof-of-concept or as a beta version._
 
 ## Main features
