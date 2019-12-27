@@ -48,3 +48,8 @@ This command above will compile app to _/dist_ folder.
 
 You can edit connection settings in _settings.json_.
 You don't need that if you will be using this app with default server port. Server software comes with this UI application preinstalled.
+
+### Author of the main page`s background image
+
+https://pixabay.com/vectors/dog-cat-animal-pet-cute-1517090/
+Thank you!
