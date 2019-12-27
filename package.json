@@ -4,6 +4,7 @@
   "private": true,
   "author": "Yurii Zubkov",
   "license": "GPL-3.0-or-later",
+  "description": "Web UI for DIY pet feeder",
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
