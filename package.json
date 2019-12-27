@@ -1,7 +1,9 @@
 {
   "name": "petfeeder-web-vue",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
+  "author": "Yurii Zubkov",
+  "license": "GPL-3.0-or-later",
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
