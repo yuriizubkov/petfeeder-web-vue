@@ -26,7 +26,6 @@
       </v-progress-linear>
       <v-spacer></v-spacer>
       <v-btn
-        v-if="!iOS"
         @click="downloadFile"
         :disabled="galleryEntry.state < 1 || downloadingFile || removingFile"
         :loading="downloadingFile"
@@ -142,19 +141,25 @@ export default {
       if (event.d.d === null) {
         this.downloadingFile = false
 
-        const blob = new Blob([this.videoFileBuffer], { type: 'octet/stream' })
+        const blob = new Blob([this.videoFileBuffer], { type: 'video/mp4' })
         const url = URL.createObjectURL(blob)
         const fileDate = new Date(this.galleryEntry.id)
-        const a = document.createElement('a')
-        a.href = url
-        a.download =
+        const fileName =
           `video-${fileDate.getUTCFullYear()}-` +
           `${nf(fileDate.getUTCMonth() + 1)}-` +
           `${nf(fileDate.getUTCDate())}-` +
           `${nf(fileDate.getUTCHours())}-` +
           `${nf(fileDate.getUTCMinutes())}-` +
           `${nf(fileDate.getUTCSeconds())}.mp4`
-        a.click()
+
+        if (!this.iOS) {
+          const a = document.createElement('a')
+          a.href = url
+          a.download = fileName
+          a.click()
+        } else {
+          window.open(url, '_tab')
+        }
 
         setTimeout(() => {
           URL.revokeObjectURL(url) // destroy object url
