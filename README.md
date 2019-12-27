@@ -4,10 +4,8 @@ Web interface (for using in your intranet) for DIY pet feeder.
 This is part of alternative software for DIY pet feeder, based on modified smart pet feeder _Petwant PF-103_.
 Please check this links for more information:
 
-https://github.com/yuriizubkov/petwant-device - npm module for communication with _Petwant PF-103_ microcontroller board.
-
-https://github.com/yuriizubkov/petwant-device/wiki - useful information about modifying your _Petwant PF-103_.
-
+https://github.com/yuriizubkov/petwant-device - npm module for communication with _Petwant PF-103_ microcontroller board. <br/>
+https://github.com/yuriizubkov/petwant-device/wiki - useful information about modifying your _Petwant PF-103_.<br/>
 (link to server software goes here, documentation in progress) - pet feeder server software.
 
 Usually you don't need to install this app manually. Server software comes with this UI application preinstalled.
